@@ -112,9 +112,9 @@ router.post('/resend-confirmation', async (req, res) => {
       return res.status(200).json({ errors: 'Пользователь не найден!' });
     }
 
-    //if (user.isActive) {
-    //  return res.status(200).json({ errors: 'Аккаунт уже активирован!' });
-    //}
+    if (user.isActive) {
+      return res.status(200).json({ errors: 'Аккаунт уже активирован!' });
+    }
 
     // Генерация нового кода подтверждения
     const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString(); // 6-значный код
@@ -156,9 +156,9 @@ router.post('/confirm', async (req, res) => {
     }
 
     // Проверка срока действия кода
-    //if (Date.now() > user.confirmationExpires) {
-    //  return res.status(200).json({ errors: 'Срок действия кода истек!' });
-    //}
+    if (Date.now() > user.confirmationExpires) {
+      return res.status(200).json({ errors: 'Срок действия кода истек!' });
+    }
 
     // Активация учетной записи
     user.isActive = true;

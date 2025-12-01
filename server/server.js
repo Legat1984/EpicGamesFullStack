@@ -18,9 +18,13 @@ const app = express()
 const PORT = process.env.PORT || 5000
 // Включаем поддержку CORS для разрешения кросс-доменных запросов
 const corsOptions = {
-  origin: [
-    "http://109.71.242.8:3000"  // ваш фронтенд
-  ],
+  origin: process.env.CLIENT_URL ? 
+    process.env.CLIENT_URL.split(',') : 
+    [
+      "http://localhost:3000", 
+      "http://109.71.242.8:3000",
+      "http://localhost:5173" // для Vite
+    ],
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -31,9 +35,13 @@ app.use(bodyParser.json())
 
 // Подключаемся к MongoDB, указывая URL и настройки для подключения
 mongoose.connect(process.env.MONGO_URL)
-  .catch((err) => {
-    throw new Error(`Произошла ошибка подключения к базе данных: ${err}`)
+  .then(() => {
+    console.log('Подключение к базе данных MongoDB установлено');
   })
+  .catch((err) => {
+    console.error(`Произошла ошибка подключения к базе данных: ${err}`);
+    process.exit(1); // Завершаем процесс при ошибке подключения
+  });
 
 // Получаем экземпляр подключения к базе данных
 const connection = mongoose.connection
@@ -52,7 +60,7 @@ const http = require('http');
 const server = http.createServer(app);
 const io = require('socket.io')(server, {
   cors: {
-    origin: "*", // Разрешаем подключения с любых источников для отладки
+    origin: corsOptions.origin, // Используем те же настройки CORS, что и для Express
     methods: ["GET", "POST"],
     credentials: true
   },
@@ -60,23 +68,17 @@ const io = require('socket.io')(server, {
   allowEIO3: true // Разрешаем версию Engine.IO 3
 });
 
-/* // Подключаем Socket.IO
-const http = require('http');
-const server = http.createServer(app);
-const io = require('socket.io')(server, {
-  cors: {
-    origin: [
-      "http://109.71.242.8:3000"  // ваш фронтенд
-    ],
-    methods: ["GET", "POST"],
-    credentials: true
-  },
-  transports: ['websocket', 'polling'], // Указываем доступные транспорты
-  allowEIO3: true // Разрешаем версию Engine.IO 3
-}); */
-
 // Подключаем обработчик чата
 require('./socket/chatHandler')(io);
+
+// Обработка событий подключения/отключения сокета
+io.on('connection', (socket) => {
+  console.log('Пользователь подключился к сокету:', socket.id);
+  
+  socket.on('disconnect', () => {
+    console.log('Пользователь отключился от сокета:', socket.id);
+  });
+});
 
 // Обработка ошибок сокета на уровне сервера
 io.on('connection_error', (error) => {

@@ -12,16 +12,45 @@ const UserSchema = new mongoose.Schema({
         maxlength: 50,
         match: [loginValidationRegex, 'Login can only contain letters, numbers, and @$!%*?&^#-_ characters']
     },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    confirmationToken: { type: String },
-    confirmationCode: { type: String },
-    confirmationExpires: { type: Date },
-    isActive: { type: Boolean, default: false },
-    resetPasswordToken: { type: String },
-    resetPasswordExpires: { type: Date },
+    email: { 
+        type: String, 
+        required: true, 
+        unique: true,
+        maxlength: 255
+    },
+    password: { 
+        type: String, 
+        required: true,
+        minlength: 6,
+        maxlength: 1024
+    },
+    confirmationToken: { 
+        type: String,
+        maxlength: 512
+    },
+    confirmationCode: { 
+        type: String,
+        maxlength: 10
+    },
+    confirmationExpires: { 
+        type: Date 
+    },
+    isActive: { 
+        type: Boolean, 
+        default: false 
+    },
+    resetPasswordToken: { 
+        type: String,
+        maxlength: 512
+    },
+    resetPasswordExpires: { 
+        type: Date 
+    },
     rights: [{ type: mongoose.Schema.Types.ObjectId, ref: 'userRights' }],
-    avatarFilename: {type: String},
+    avatarFilename: {
+        type: String,
+        maxlength: 255
+    },
     favoriteGames: [{ type: mongoose.Schema.Types.ObjectId, ref: 'games'}]
 }, {collection: 'users'})
 
