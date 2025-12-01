@@ -61,7 +61,7 @@ const server = http.createServer(app);
 const io = require('socket.io')(server, {
   cors: {
     origin: corsOptions.origin, // Используем те же настройки CORS, что и для Express
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true
   },
   transports: ['websocket', 'polling'], // Указываем доступные транспорты

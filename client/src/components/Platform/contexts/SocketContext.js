@@ -24,7 +24,7 @@ export const SocketProvider = ({ children }) => {
     
     // Создаем соединение с сервером
     const newSocket = io(SERVER_URL, {
-      withCredentials: false,
+      withCredentials: true, // Установим в true, так как сервер настроен с credentials: true
       transports: ['websocket', 'polling'],
       // Добавляем токен для аутентификации
       auth: {
@@ -55,6 +55,8 @@ export const SocketProvider = ({ children }) => {
 
     newSocket.on('connect_error', (error) => {
       console.error('Ошибка подключения:', error);
+      console.error('Тип ошибки:', error.type);
+      console.error('Сообщение ошибки:', error.message);
       setIsConnected(false);
     });
 
