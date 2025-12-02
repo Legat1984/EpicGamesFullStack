@@ -1,20 +1,20 @@
-import axios from 'axios';
-
 // Базовый URL для API (можно изменить при необходимости)
-const API_BASE_URL = process.env.REACT_APP_SERVER_WSURL;
+const API_BASE_URL = process.env.REACT_APP_SERVER_APIURL || process.env.REACT_APP_SERVER_WSURL;
 
 // Получить общую комнату
 export const getRoomsGeneral = async () => {
   try {
-    const response = await fetch(`${process.env.API_BASE_URL}/api/chat/general`, {
+    const response = await fetch(`${API_BASE_URL}/api/chat/general`, {
+      method: 'GET',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
     });
     if (!response.ok) {
       throw new Error(`Ошибка сети: ${response.status} ${response.statusText}`);
     }
-    console.log(response)
     const generalRoom = await response.json();
     console.log(generalRoom);
     return generalRoom;
@@ -27,15 +27,20 @@ export const getRoomsGeneral = async () => {
 // Получить все комнаты
 export const getRooms = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/api/chat/rooms`, {
-      withCredentials: true,
+    const response = await fetch(`${API_BASE_URL}/api/chat/rooms`, {
+      method: 'GET',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
     });
-    console.log(response.data)
-    return response.data;
+    if (!response.ok) {
+      throw new Error(`Ошибка сети: ${response.status} ${response.statusText}`);
+    }
+    const data = await response.json();
+    console.log(data);
+    return data;
   } catch (error) {
     console.error('Ошибка при получении комнат:', error);
     throw error;
@@ -45,14 +50,19 @@ export const getRooms = async () => {
 // Получить сообщения комнаты
 export const getRoomMessages = async (roomId) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/api/chat/rooms/${roomId}/messages`, {
-      withCredentials: true,
+    const response = await fetch(`${API_BASE_URL}/api/chat/rooms/${roomId}/messages`, {
+      method: 'GET',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
     });
-    return response.data;
+    if (!response.ok) {
+      throw new Error(`Ошибка сети: ${response.status} ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
   } catch (error) {
     console.error(`Ошибка при получении сообщений комнаты ${roomId}:`, error);
     throw error;
@@ -62,17 +72,20 @@ export const getRoomMessages = async (roomId) => {
 // Отправить сообщение (резервный вариант через API, если socket не работает)
 export const sendMessage = async (roomId, text) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/api/chat/messages`, {
-      roomId,
-      text
-    }, {
-      withCredentials: true,
+    const response = await fetch(`${API_BASE_URL}/api/chat/messages`, {
+      method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
+      },
+      body: JSON.stringify({ roomId, text })
     });
-    return response.data;
+    if (!response.ok) {
+      throw new Error(`Ошибка сети: ${response.status} ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
   } catch (error) {
     console.error('Ошибка при отправке сообщения:', error);
     throw error;

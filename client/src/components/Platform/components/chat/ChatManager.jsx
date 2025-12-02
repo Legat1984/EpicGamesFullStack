@@ -17,23 +17,28 @@ const ChatManager = ({ theme }) => {
   const [isMobile, setIsMobile] = useState(false);
   const chatEndRef = useRef(null);
 
-  // Загрузка комнат при монтировании
+  // Загрузка общей комнаты при монтировании
   useEffect(() => {
-    const fetchRooms = async () => {
+    const fetchGeneralRoom = async () => {
       try {
-        const roomsData = await getRoomsGeneral();
-        console.log(roomsData)
+        const roomData = await getRoomsGeneral();
+        console.log(roomData);
 
-        // Убедимся, что roomsData - это массив
-        const roomsArray = Array.isArray(roomsData) ? roomsData : [];
-        setRooms(roomsArray);
+        // Проверяем, что возвращенные данные - это объект комнаты, а не массив
+        if (roomData && typeof roomData === 'object' && roomData._id) {
+          const roomArray = [roomData];
+          setRooms(roomArray);
 
-        // Устанавливаем первую комнату как активную
-        if (roomsArray.length > 0 && !activeChat) {
-          setActiveChat(roomsArray[0]._id);
+          // Устанавливаем общую комнату как активную
+          if (!activeChat) {
+            setActiveChat(roomData._id);
+          }
+        } else {
+          console.error('Неверный формат данных общей комнаты:', roomData);
+          setRooms([]);
         }
       } catch (error) {
-        console.error('Ошибка при загрузке комнат:', error);
+        console.error('Ошибка при загрузке общей комнаты:', error);
         // Устанавливаем пустой массив в случае ошибки
         setRooms([]);
       } finally {
@@ -41,12 +46,13 @@ const ChatManager = ({ theme }) => {
       }
     };
 
-    fetchRooms();
-  }, [activeChat]);
+    fetchGeneralRoom();
+  }, []); // Убрали activeChat из зависимостей, чтобы загрузка происходила только один раз
 
-  // Загрузка сообщений комнаты при смене активной комнаты
+  // Загрузка сообщений комнаты при смене активной комнаты (только если сокет не подключен)
   useEffect(() => {
-    if (activeChat) {
+    if (activeChat && (!socket || !isConnected)) {
+      // Если сокет не подключен, используем API для получения сообщений
       const fetchMessages = async () => {
         try {
           const roomMessages = await getRoomMessages(activeChat);
@@ -68,7 +74,7 @@ const ChatManager = ({ theme }) => {
 
       fetchMessages();
     }
-  }, [activeChat, user]);
+  }, [activeChat, user, socket, isConnected]);
 
   // Обработка сокет-событий
   useEffect(() => {
@@ -108,7 +114,7 @@ const ChatManager = ({ theme }) => {
       socket.on('receiveMessage', handleMessageReceive);
       socket.on('loadMessages', handleLoadMessages);
 
-      // Присоединяемся к комнате при смене активной комнаты
+      // Присоединяемся к комнате
       if (user && activeChat) {
         const token = localStorage.getItem('token');
         socket.emit('joinRoom', { roomId: activeChat, userId: user._id, token });
@@ -118,7 +124,7 @@ const ChatManager = ({ theme }) => {
         socket.off('receiveMessage', handleMessageReceive);
         socket.off('loadMessages', handleLoadMessages);
 
-        // Покидаем предыдущую комнату
+        // Покидаем комнату
         if (user && activeChat) {
           const token = localStorage.getItem('token');
           socket.emit('leaveRoom', { roomId: activeChat, userId: user._id, token });
@@ -126,6 +132,31 @@ const ChatManager = ({ theme }) => {
       };
     }
   }, [socket, activeChat, user]);
+
+  // Подключение к общей комнате при подключении сокета и наличии пользователя
+  useEffect(() => {
+    if (socket && user && !activeChat) {
+      // Если activeChat еще не установлен, устанавливаем общую комнату
+      const fetchGeneralRoom = async () => {
+        try {
+          const roomData = await getRoomsGeneral();
+          if (roomData && typeof roomData === 'object' && roomData._id) {
+            const roomArray = [roomData];
+            setRooms(roomArray);
+            setActiveChat(roomData._id);
+          }
+        } catch (error) {
+          console.error('Ошибка при загрузке общей комнаты для подключения:', error);
+        }
+      };
+
+      fetchGeneralRoom();
+    } else if (socket && user && activeChat) {
+      // Если сокет подключен, пользователь авторизован и есть активная комната, подключаемся к ней
+      const token = localStorage.getItem('token');
+      socket.emit('joinRoom', { roomId: activeChat, userId: user._id, token });
+    }
+  }, [socket, user, activeChat]);
 
   useEffect(() => {
     const checkMobile = () => {
