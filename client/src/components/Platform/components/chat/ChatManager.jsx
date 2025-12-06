@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { UserContext } from '../../../../contexts/UserContext';
 import { useSocket } from '../../contexts/SocketContext';
-import { getRoomsGeneral, getRooms, getRoomMessages, sendMessage as sendApiMessage } from '../../services/chatService';
+//import { getRoomsGeneral, getRooms, getRoomMessages, sendMessage as sendApiMessage } from '../../services/chatService';
 import ChatWindow from './ChatWindow';
 import ChatIconButton from './ChatIcon';
 
@@ -9,7 +9,7 @@ const ChatManager = ({ theme }) => {
   const { user } = useContext(UserContext);
   const { socket, isConnected } = useSocket();
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [activeChat, setActiveChat] = useState(null);
+  const [activeChat, setActiveChat] = useState('692c99e7640a5c477a79ef11');
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState({});
   const [rooms, setRooms] = useState([]);
@@ -19,6 +19,14 @@ const ChatManager = ({ theme }) => {
 
   // Загрузка общей комнаты при монтировании
   useEffect(() => {
+    if (activeChat && (!socket || !isConnected)) {
+      console.log("Сокет не подключен, идет переподключение!");
+    } else {
+      console.log("Сокет подключен!");
+      socket.on('joinRoom', activeChat);
+    }
+  }, [activeChat, socket, isConnected]);
+  /*useEffect(() => {
     const fetchGeneralRoom = async () => {
       try {
         const roomData = await getRoomsGeneral();
@@ -47,10 +55,10 @@ const ChatManager = ({ theme }) => {
     };
 
     fetchGeneralRoom();
-  }, []); // Убрали activeChat из зависимостей, чтобы загрузка происходила только один раз
+  }, []);*/ // Убрали activeChat из зависимостей, чтобы загрузка происходила только один раз
 
   // Загрузка сообщений комнаты при смене активной комнаты (только если сокет не подключен)
-  useEffect(() => {
+  /*useEffect(() => {
     if (activeChat && (!socket || !isConnected)) {
       // Если сокет не подключен, используем API для получения сообщений
       const fetchMessages = async () => {
@@ -74,10 +82,10 @@ const ChatManager = ({ theme }) => {
 
       fetchMessages();
     }
-  }, [activeChat, user, socket, isConnected]);
+  }, [activeChat, user, socket, isConnected]);*/
 
   // Обработка сокет-событий
-  useEffect(() => {
+  /*useEffect(() => {
     if (socket && activeChat) {
       // Обработка получения нового сообщения
       const handleMessageReceive = (message) => {
@@ -131,10 +139,10 @@ const ChatManager = ({ theme }) => {
         }
       };
     }
-  }, [socket, activeChat, user]);
+  }, [socket, activeChat, user]);*/
 
   // Подключение к общей комнате при подключении сокета и наличии пользователя
-  useEffect(() => {
+  /*useEffect(() => {
     if (socket && user && !activeChat) {
       // Если activeChat еще не установлен, устанавливаем общую комнату
       const fetchGeneralRoom = async () => {
@@ -156,7 +164,7 @@ const ChatManager = ({ theme }) => {
       const token = localStorage.getItem('token');
       socket.emit('joinRoom', { roomId: activeChat, userId: user._id, token });
     }
-  }, [socket, user, activeChat]);
+  }, [socket, user, activeChat]);*/
 
   useEffect(() => {
     const checkMobile = () => {
@@ -188,12 +196,12 @@ const ChatManager = ({ theme }) => {
         console.error('Ошибка при отправке сообщения:', error);
 
         // Резервный вариант - отправка через API
-        try {
+        /*try {
           await sendApiMessage(activeChat, message.trim());
           setMessage('');
         } catch (apiError) {
           console.error('Ошибка при отправке сообщения через API:', apiError);
-        }
+        }*/
       }
     }
   };

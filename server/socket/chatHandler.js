@@ -29,7 +29,9 @@ module.exports = (io) => {
 
     // Присоединение к комнате
     socket.on('joinRoom', async (data) => {
-      try {
+       console.log("Начали присоединение к комнате");
+       console.log(data)
+      /*try {
         const { roomId } = data;
         const userId = socket.user.userId || socket.user.id;
 
@@ -65,11 +67,11 @@ module.exports = (io) => {
       } catch (error) {
         console.error('Ошибка при присоединении к комнате:', error);
         socket.emit('error', { message: 'Ошибка при присоединении к комнате' });
-      }
+      }*/
     });
 
     // Отправка сообщения
-    socket.on('sendMessage', async (data) => {
+    /*socket.on('sendMessage', async (data) => {
       try {
         const { roomId, text } = data;
         const userId = socket.user.userId || socket.user.id;
@@ -98,10 +100,10 @@ module.exports = (io) => {
         console.error('Ошибка при отправке сообщения:', error);
         socket.emit('error', { message: 'Ошибка при отправке сообщения' });
       }
-    });
+    });*/
 
     // Выход из комнаты
-    socket.on('leaveRoom', async (data) => {
+    /*socket.on('leaveRoom', async (data) => {
       try {
         const { roomId } = data;
         const userId = socket.user.userId || socket.user.id;
@@ -122,7 +124,7 @@ module.exports = (io) => {
         console.error('Ошибка при выходе из комнаты:', error);
         socket.emit('error', { message: 'Ошибка при выходе из комнаты' });
       }
-    });
+    });*/
 
     // Обработка ошибок
     socket.on('error', (error) => {

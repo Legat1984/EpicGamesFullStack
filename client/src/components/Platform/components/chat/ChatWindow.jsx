@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import styled, { css } from 'styled-components';
-import { Send, Users, Gamepad2 } from 'lucide-react';
+import { Send, Users } from 'lucide-react';
 import CloseButton from '../main/CloseButton';
 
 const Overlay = styled(({ show, isMobile, ...props }) => <div {...props} />)`
@@ -154,7 +154,7 @@ const ChatWindow = ({
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, activeChat]);
 
-  // Prevent background scrolling when chat is open on mobile
+  // Предотвратите фоновую прокрутку, когда чат открыт на мобильном устройстве
   useEffect(() => {
     if (isMobile && isChatOpen) {
       document.body.style.overflow = 'hidden';

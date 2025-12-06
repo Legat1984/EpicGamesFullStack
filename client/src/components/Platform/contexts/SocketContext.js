@@ -9,7 +9,7 @@ const SERVER_URL = process.env.REACT_APP_SERVER_WSURL;
 export const useSocket = () => {
   const context = useContext(SocketContext);
   if (!context) {
-    throw new Error('useSocket must be used within a SocketProvider');
+    throw new Error('useSocket должен использоваться в SocketProvider');
   }
   return context;
 };

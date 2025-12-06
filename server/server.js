@@ -18,10 +18,10 @@ const app = express()
 const PORT = process.env.PORT || 5000
 // Включаем поддержку CORS для разрешения кросс-доменных запросов
 const corsOptions = {
-  origin: process.env.CLIENT_URL ? 
-    process.env.CLIENT_URL.split(',') : 
+  origin: process.env.CLIENT_URL ?
+    process.env.CLIENT_URL.split(',') :
     [
-      "http://localhost:3000", 
+      "http://localhost:3000",
       "http://109.71.242.8:3000",
       "http://localhost:5173" // для Vite
     ],
@@ -36,24 +36,17 @@ app.use(bodyParser.json())
 // Подключаемся к MongoDB, указывая URL и настройки для подключения
 mongoose.connect(process.env.MONGO_URL)
   .then(() => {
-    console.log('Подключение к базе данных MongoDB установлено');
+    console.log('Подключение к базе данных MongoDB установлено')
   })
   .catch((err) => {
     console.error(`Произошла ошибка подключения к базе данных: ${err}`);
     process.exit(1); // Завершаем процесс при ошибке подключения
   });
 
-// Получаем экземпляр подключения к базе данных
-const connection = mongoose.connection
-// Настраиваем обработчик события "open" для подключения к MongoDB
-connection.once('open', () => {
-  console.log('Подключение к базе данных MongoDB установлено')
-})
-
 // Подключаем роуты
 app.use('/api/users', authRoutes)
 app.use('/api/games', gamesRoutes)
-app.use('/api/chat', chatRoutes)
+//app.use('/api/chat', chatRoutes)
 
 // Подключаем Socket.IO
 const http = require('http');
@@ -70,20 +63,6 @@ const io = require('socket.io')(server, {
 
 // Подключаем обработчик чата
 require('./socket/chatHandler')(io);
-
-// Обработка событий подключения/отключения сокета
-io.on('connection', (socket) => {
-  console.log('Пользователь подключился к сокету:', socket.id);
-  
-  socket.on('disconnect', () => {
-    console.log('Пользователь отключился от сокета:', socket.id);
-  });
-});
-
-// Обработка ошибок сокета на уровне сервера
-io.on('connection_error', (error) => {
-  console.log('Ошибка подключения сокета:', error.message);
-});
 
 // Запускаем сервер на указанном порту и выводим сообщение о его успешном запуске
 server.listen(PORT, '0.0.0.0', () => {
