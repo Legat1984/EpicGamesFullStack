@@ -4,6 +4,8 @@ const User = require('../models/User');
 
 const jwt = require('jsonwebtoken');
 
+const mongoose = require('mongoose');
+
 module.exports = (io) => {
   io.use((socket, next) => {
     const token = socket.handshake.auth.token || socket.handshake.query.token;
@@ -36,9 +38,22 @@ module.exports = (io) => {
         const userId = socket.user.userId || socket.user.id;
 
         // Проверяем существование комнаты
-        const room = await Room.findById(roomId);
-        console.log(roomId)
+        console.log('Полученный roomId:', roomId, 'Тип:', typeof roomId);
+
+        // Проверим, является ли roomId валидным ObjectId
+        if (!mongoose.Types.ObjectId.isValid(roomId)) {
+          console.log('roomId не является валидным ObjectId:', roomId);
+          socket.emit('error', { message: 'Неверный формат ID комнаты' });
+          return;
+        }
+
+        // Преобразуем roomId в ObjectId, если он передан как строка
+        const objectId = typeof roomId === 'string' ? new mongoose.Types.ObjectId(roomId) : roomId;
+
+        const room = await Room.findById(objectId);
+        console.log(room)
         if (!room) {
+          console.log("Комната не найдена");
           socket.emit('error', { message: 'Комната не найдена' });
           return;
         }
