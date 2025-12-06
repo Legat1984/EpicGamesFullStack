@@ -23,9 +23,10 @@ const ChatManager = ({ theme }) => {
       console.log("Сокет не подключен, идет переподключение!");
     } else {
       console.log("Сокет подключен!");
-      socket.on('joinRoom', activeChat);
+      const token = localStorage.getItem('token');
+      socket.emit('joinRoom', { roomId: activeChat, userId: user._id, token });
     }
-  }, [activeChat, socket, isConnected]);
+  }, [activeChat, socket, isConnected, user._id]);
   /*useEffect(() => {
     const fetchGeneralRoom = async () => {
       try {

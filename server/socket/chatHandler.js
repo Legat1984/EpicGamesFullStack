@@ -31,19 +31,23 @@ module.exports = (io) => {
     socket.on('joinRoom', async (data) => {
        console.log("Начали присоединение к комнате");
        console.log(data)
-      /*try {
+      try {
         const { roomId } = data;
         const userId = socket.user.userId || socket.user.id;
 
         // Проверяем существование комнаты
         const room = await Room.findById(roomId);
+        console.log(roomId)
         if (!room) {
           socket.emit('error', { message: 'Комната не найдена' });
           return;
         }
+        
+        console.log(userId)
+        console.log(room)
 
         // Добавляем пользователя к комнате
-        socket.join(roomId);
+        /*socket.join(roomId);
 
         // Обновляем список участников комнаты в базе данных
         await Room.findByIdAndUpdate(roomId, {
@@ -63,11 +67,11 @@ module.exports = (io) => {
           .sort({ createdAt: 1 })
           .limit(50); // ограничиваем количество сообщений
 
-        socket.emit('loadMessages', { roomId, messages });
+        socket.emit('loadMessages', { roomId, messages });*/
       } catch (error) {
         console.error('Ошибка при присоединении к комнате:', error);
         socket.emit('error', { message: 'Ошибка при присоединении к комнате' });
-      }*/
+      }
     });
 
     // Отправка сообщения

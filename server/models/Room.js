@@ -9,7 +9,7 @@ const roomSchema = new mongoose.Schema({
   description: String,
   participants: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'users'
   }],
   createdAt: {
     type: Date,
@@ -17,4 +17,6 @@ const roomSchema = new mongoose.Schema({
   }
 });
 
-module.exports = mongoose.model('Room', roomSchema);
+const Room = mongoose.model('Room', roomSchema);
+
+module.exports = Room;
