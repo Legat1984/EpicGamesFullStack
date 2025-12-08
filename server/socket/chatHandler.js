@@ -55,7 +55,10 @@ module.exports = (io) => {
           return;
         }
 
-        socket.roomId = roomId;
+        if (!socket.rooms) {
+          socket.rooms = new Set();
+        }
+        socket.rooms.add(roomId);
         
         // Добавляем пользователя к комнате
         socket.join(roomId);
