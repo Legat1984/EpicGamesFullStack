@@ -31,8 +31,6 @@ module.exports = (io) => {
 
     // Присоединение к комнате
     socket.on('joinRoom', async (data) => {
-       console.log("Начали присоединение к комнате");
-       console.log(data)
       try {
         const { roomId } = data;
         const userId = socket.user.userId || socket.user.id;
@@ -51,18 +49,16 @@ module.exports = (io) => {
         const objectId = typeof roomId === 'string' ? new mongoose.Types.ObjectId(roomId) : roomId;
 
         const room = await Room.findById(objectId);
-        console.log(room)
         if (!room) {
           console.log("Комната не найдена");
           socket.emit('error', { message: 'Комната не найдена' });
           return;
         }
-        
-        console.log(userId)
-        console.log(room)
 
+        socket.roomId = roomId;
+        
         // Добавляем пользователя к комнате
-        /*socket.join(roomId);
+        socket.join(roomId);
 
         // Обновляем список участников комнаты в базе данных
         await Room.findByIdAndUpdate(roomId, {
@@ -82,7 +78,7 @@ module.exports = (io) => {
           .sort({ createdAt: 1 })
           .limit(50); // ограничиваем количество сообщений
 
-        socket.emit('loadMessages', { roomId, messages });*/
+        socket.emit('loadMessages', { roomId, messages });
       } catch (error) {
         console.error('Ошибка при присоединении к комнате:', error);
         socket.emit('error', { message: 'Ошибка при присоединении к комнате' });
@@ -152,6 +148,26 @@ module.exports = (io) => {
 
     // Отключение пользователя
     socket.on('disconnect', () => {
+      try {
+        const { roomId } = socket.roomId;
+        const userId = socket.user.userId || socket.user.id;
+
+        socket.leave(roomId);
+
+        // Удаляем пользователя из участников комнаты
+        Room.findByIdAndUpdate(roomId, {
+          $pull: { participants: userId }
+        });
+
+        socket.to(roomId).emit('userLeft', {
+          userId,
+          roomId,
+          message: `Пользователь покинул комнату ${roomId}`
+        });
+      } catch (error) {
+        console.error('Ошибка при выходе из комнаты:', error);
+        socket.emit('error', { message: 'Ошибка при выходе из комнаты' });
+      }
       console.log('Пользователь отключился:', socket.id, 'User ID:', socket.user.userId || socket.user.id);
     });
   });
