@@ -55,11 +55,11 @@ module.exports = (io) => {
           return;
         }
 
-        if (!socket.rooms) {
-          socket.rooms = new Set();
+        if (!socket.joinedRooms) {
+          socket.joinedRooms = new Set();
         }
-        socket.rooms.add(roomId);
-        
+        socket.joinedRooms.add(roomId);
+
         // Добавляем пользователя к комнате
         socket.join(roomId);
 
@@ -121,7 +121,7 @@ module.exports = (io) => {
     });*/
 
     // Выход из комнаты
-    /*socket.on('leaveRoom', async (data) => {
+    socket.on('leaveRoom', async (data) => {
       try {
         const { roomId } = data;
         const userId = socket.user.userId || socket.user.id;
@@ -142,7 +142,7 @@ module.exports = (io) => {
         console.error('Ошибка при выходе из комнаты:', error);
         socket.emit('error', { message: 'Ошибка при выходе из комнаты' });
       }
-    });*/
+    });
 
     // Обработка ошибок
     socket.on('error', (error) => {
@@ -154,8 +154,8 @@ module.exports = (io) => {
       const userId = socket.user.userId || socket.user.id;
       console.log('Пользователь отключился:', socket.id, 'User ID:', userId);
 
-      // Получаем все комнаты, в которых находится сокет (кроме его собственной комнаты)
-      const rooms = Array.from(socket.rooms);
+      // Используем наш собственный список комнат, созданный при joinRoom
+      const rooms = socket.joinedRooms ? Array.from(socket.joinedRooms) : [];
       console.log('Сокет был в комнатах:', rooms);
 
       // Проходим по всем комнатам, кроме собственной комнаты сокета (которая имеет тот же ID)
