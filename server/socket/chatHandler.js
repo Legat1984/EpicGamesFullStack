@@ -6,6 +6,11 @@ const jwt = require('jsonwebtoken');
 
 const mongoose = require('mongoose');
 
+// Вспомогательная функция для проверки валидности ObjectId
+const isValidObjectId = (id) => {
+  return mongoose.Types.ObjectId.isValid(id);
+};
+
 module.exports = (io) => {
   io.use((socket, next) => {
     const token = socket.handshake.auth.token || socket.handshake.query.token;
@@ -39,7 +44,7 @@ module.exports = (io) => {
         console.log('Полученный roomId:', roomId, 'Тип:', typeof roomId);
 
         // Проверим, является ли roomId валидным ObjectId
-        if (!mongoose.Types.ObjectId.isValid(roomId)) {
+        if (!isValidObjectId(roomId)) {
           console.log('roomId не является валидным ObjectId:', roomId);
           socket.emit('error', { message: 'Неверный формат ID комнаты' });
           return;
@@ -94,11 +99,30 @@ module.exports = (io) => {
         const { roomId, text } = data;
         const userId = socket.user.userId || socket.user.id;
 
+        // Проверяем валидность данных
+        if (!roomId || !text || typeof text !== 'string' || text.trim().length === 0) {
+          socket.emit('error', { message: 'Неверные данные сообщения' });
+          return;
+        }
+
+        // Проверяем, является ли roomId валидным ObjectId
+        if (!isValidObjectId(roomId)) {
+          socket.emit('error', { message: 'Неверный формат ID комнаты' });
+          return;
+        }
+
+        // Проверяем длину сообщения
+        const trimmedText = text.trim();
+        if (trimmedText.length > 1000) { // Ограничение длины сообщения
+          socket.emit('error', { message: 'Сообщение слишком длинное (максимум 1000 символов)' });
+          return;
+        }
+
         // Создаем новое сообщение в базе данных
         const newMessage = new Message({
           room: roomId,
           user: userId,
-          text: text.trim()
+          text: trimmedText
         });
 
         const message = await newMessage.save();
@@ -111,7 +135,7 @@ module.exports = (io) => {
         await Room.findByIdAndUpdate(roomId, {
           $set: {
             lastMessageAt: newMessage.createdAt,
-            lastMessage: text.substring(0, 50) + (text.length > 50 ? '...' : '') // первые 50 символов
+            lastMessage: trimmedText.substring(0, 50) + (trimmedText.length > 50 ? '...' : '') // первые 50 символов
           }
         });
       } catch (error) {
@@ -127,7 +151,7 @@ module.exports = (io) => {
         const userId = socket.user.userId || socket.user.id;
 
         // Проверяем, является ли roomId валидным ObjectId
-        if (!mongoose.Types.ObjectId.isValid(roomId)) {
+        if (!isValidObjectId(roomId)) {
           console.log('roomId не является валидным ObjectId:', roomId);
           socket.emit('error', { message: 'Неверный формат ID комнаты' });
           return;
@@ -177,29 +201,31 @@ module.exports = (io) => {
       const rooms = socket.joinedRooms ? Array.from(socket.joinedRooms) : [];
       console.log('Сокет был в комнатах:', rooms);
 
-      // Проходим по всем комнатам, кроме собственной комнаты сокета (которая имеет тот же ID)
+      // Проходим по всем комнатам, в которых состоял пользователь
       for (const roomId of rooms) {
-        if (roomId !== socket.id) { // socket.id - это всегда его собственная "личная" комната
-          try {
-            console.log(`Пользователь покидает комнату: ${roomId}`);
+        // Пропускаем комнату сокета (сам сокет автоматически покидает свою комнату при отключении)
+        if (io.sockets.adapter.rooms.get(roomId)?.size === 0 || roomId === socket.id) {
+          continue; // Пропускаем, если комната пуста или это собственная комната сокета
+        }
+        try {
+          console.log(`Пользователь покидает комнату: ${roomId}`);
 
-            // Покидаем комнату
-            socket.leave(roomId);
+          // Покидаем комнату
+          socket.leave(roomId);
 
-            // Удаляем пользователя из участников комнаты в базе данных
-            await Room.findByIdAndUpdate(roomId, {
-              $pull: { participants: userId }
-            });
+          // Удаляем пользователя из участников комнаты в базе данных
+          await Room.findByIdAndUpdate(roomId, {
+            $pull: { participants: userId }
+          });
 
-            // Уведомляем других пользователей в комнате о том, что пользователь покинул комнату
-            socket.to(roomId).emit('userLeft', {
-              userId,
-              roomId,
-              message: `Пользователь покинул комнату ${roomId}`
-            });
-          } catch (error) {
-            console.error(`Ошибка при выходе из комнаты ${roomId}:`, error);
-          }
+          // Уведомляем других пользователей в комнате о том, что пользователь покинул комнату
+          socket.to(roomId).emit('userLeft', {
+            userId,
+            roomId,
+            message: `Пользователь покинул комнату ${roomId}`
+          });
+        } catch (error) {
+          console.error(`Ошибка при выходе из комнаты ${roomId}:`, error);
         }
       }
     });
