@@ -147,8 +147,39 @@ module.exports = (io) => {
     });
 
     // Отключение пользователя
-    socket.on('disconnect', () => {
-      console.log('Пользователь отключился:', socket.id, 'User ID:', socket.user.userId || socket.user.id);
+    socket.on('disconnect', async () => {
+      const userId = socket.user.userId || socket.user.id;
+      console.log('Пользователь отключился:', socket.id, 'User ID:', userId);
+
+      // Получаем все комнаты, в которых находится сокет (кроме его собственной комнаты)
+      const rooms = Array.from(socket.rooms);
+      console.log('Сокет был в комнатах:', rooms);
+
+      // Проходим по всем комнатам, кроме собственной комнаты сокета (которая имеет тот же ID)
+      for (const roomId of rooms) {
+        if (roomId !== socket.id) { // socket.id - это всегда его собственная "личная" комната
+          try {
+            console.log(`Пользователь покидает комнату: ${roomId}`);
+
+            // Покидаем комнату
+            socket.leave(roomId);
+
+            // Удаляем пользователя из участников комнаты в базе данных
+            await Room.findByIdAndUpdate(roomId, {
+              $pull: { participants: userId }
+            });
+
+            // Уведомляем других пользователей в комнате о том, что пользователь покинул комнату
+            socket.to(roomId).emit('userLeft', {
+              userId,
+              roomId,
+              message: `Пользователь покинул комнату ${roomId}`
+            });
+          } catch (error) {
+            console.error(`Ошибка при выходе из комнаты ${roomId}:`, error);
+          }
+        }
+      }
     });
   });
 };
