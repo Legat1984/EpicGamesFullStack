@@ -89,7 +89,7 @@ module.exports = (io) => {
     });
 
     // Отправка сообщения
-    /*socket.on('sendMessage', async (data) => {
+    socket.on('sendMessage', async (data) => {
       try {
         const { roomId, text } = data;
         const userId = socket.user.userId || socket.user.id;
@@ -118,7 +118,7 @@ module.exports = (io) => {
         console.error('Ошибка при отправке сообщения:', error);
         socket.emit('error', { message: 'Ошибка при отправке сообщения' });
       }
-    });*/
+    });
 
     // Выход из комнаты
     socket.on('leaveRoom', async (data) => {
@@ -126,18 +126,37 @@ module.exports = (io) => {
         const { roomId } = data;
         const userId = socket.user.userId || socket.user.id;
 
-        socket.leave(roomId);
+        // Проверяем, является ли roomId валидным ObjectId
+        if (!mongoose.Types.ObjectId.isValid(roomId)) {
+          console.log('roomId не является валидным ObjectId:', roomId);
+          socket.emit('error', { message: 'Неверный формат ID комнаты' });
+          return;
+        }
 
-        // Удаляем пользователя из участников комнаты
-        await Room.findByIdAndUpdate(roomId, {
-          $pull: { participants: userId }
-        });
+        // Проверяем, находится ли пользователь в этой комнате
+        if (socket.joinedRooms && socket.joinedRooms.has(roomId)) {
+          // Покидаем комнату
+          socket.leave(roomId);
 
-        socket.to(roomId).emit('userLeft', {
-          userId,
-          roomId,
-          message: `Пользователь покинул комнату ${roomId}`
-        });
+          // Удаляем комнату из списка присоединенных комнат
+          socket.joinedRooms.delete(roomId);
+
+          // Удаляем пользователя из участников комнаты
+          await Room.findByIdAndUpdate(roomId, {
+            $pull: { participants: userId }
+          });
+
+          socket.to(roomId).emit('userLeft', {
+            userId,
+            roomId,
+            message: `Пользователь покинул комнату ${roomId}`
+          });
+
+          console.log(`Пользователь ${userId} покинул комнату ${roomId}`);
+        } else {
+          console.log(`Пользователь ${userId} не находится в комнате ${roomId}`);
+          socket.emit('error', { message: 'Вы не состоите в этой комнате' });
+        }
       } catch (error) {
         console.error('Ошибка при выходе из комнаты:', error);
         socket.emit('error', { message: 'Ошибка при выходе из комнаты' });
