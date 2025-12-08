@@ -18,14 +18,10 @@ const ChatManager = ({ theme }) => {
 
   // Загрузка общей комнаты при монтировании
   useEffect(() => {
-    if (activeChat && (!socket || !isConnected)) {
-      console.log("Сокет не подключен, идет переподключение!");
-    } else {
-      console.log("Сокет подключен!");
-      const token = localStorage.getItem('token');
-      socket.emit('joinRoom', { roomId: activeChat, userId: user._id, token });
+    if (socket && isConnected && user && activeChat) {
+      console.log("Сокет подключен! Подключаемся к комнате:", activeChat);
     }
-  }, [activeChat, socket, isConnected, user._id]);
+  }, [socket, isConnected, user, activeChat]);
   /*useEffect(() => {
     const fetchGeneralRoom = async () => {
       try {
@@ -85,86 +81,65 @@ const ChatManager = ({ theme }) => {
   }, [activeChat, user, socket, isConnected]);*/
 
   // Обработка сокет-событий
-  /*useEffect(() => {
+  useEffect(() => {
     if (socket && activeChat) {
       // Обработка получения нового сообщения
       const handleMessageReceive = (message) => {
-        if (message.room === activeChat) {
-          setMessages(prev => ({
+        setMessages(prev => {
+          const currentMessages = prev[activeChat] || [];
+          return {
             ...prev,
-            [activeChat]: [...(prev[activeChat] || []), {
+            [activeChat]: [...currentMessages, {
               ...message,
               id: message._id,
               isOwn: message.user._id === user?._id,
               time: new Date(message.createdAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
             }]
-          }));
-        }
+          };
+        });
       };
 
       // Обработка загрузки сообщений при присоединении к комнате
       const handleLoadMessages = (data) => {
-        if (data.roomId === activeChat) {
-          // Убедимся, что data.messages - это массив
-          const messagesArray = Array.isArray(data.messages) ? data.messages : [];
-          setMessages(prev => ({
-            ...prev,
-            [activeChat]: messagesArray.map(msg => ({
-              ...msg,
-              id: msg._id,
-              isOwn: msg.user._id === user?._id,
-              time: new Date(msg.createdAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
-            }))
-          }));
-        }
+        // Убедимся, что data.messages - это массив
+        const messagesArray = Array.isArray(data.messages) ? data.messages : [];
+        setMessages(prev => ({
+          ...prev,
+          [activeChat]: messagesArray.map(msg => ({
+            ...msg,
+            id: msg._id,
+            isOwn: msg.user._id === user?._id,
+            time: new Date(msg.createdAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+          }))
+        }));
+      };
+
+      // Обработка ошибок
+      const handleError = (errorData) => {
+        console.error('Ошибка чата:', errorData.message);
       };
 
       socket.on('receiveMessage', handleMessageReceive);
       socket.on('loadMessages', handleLoadMessages);
+      socket.on('error', handleError);
 
-      // Присоединяемся к комнате
+      // Присоединяемся к комнате при изменении activeChat
       if (user && activeChat) {
-        const token = localStorage.getItem('token');
-        socket.emit('joinRoom', { roomId: activeChat, userId: user._id, token });
+        socket.emit('joinRoom', { roomId: activeChat });
       }
 
       return () => {
         socket.off('receiveMessage', handleMessageReceive);
         socket.off('loadMessages', handleLoadMessages);
+        socket.off('error', handleError);
 
-        // Покидаем комнату
+        // Покидаем комнату при размонтировании
         if (user && activeChat) {
-          const token = localStorage.getItem('token');
-          socket.emit('leaveRoom', { roomId: activeChat, userId: user._id, token });
+          socket.emit('leaveRoom', { roomId: activeChat });
         }
       };
     }
-  }, [socket, activeChat, user]);*/
-
-  // Подключение к общей комнате при подключении сокета и наличии пользователя
-  /*useEffect(() => {
-    if (socket && user && !activeChat) {
-      // Если activeChat еще не установлен, устанавливаем общую комнату
-      const fetchGeneralRoom = async () => {
-        try {
-          const roomData = await getRoomsGeneral();
-          if (roomData && typeof roomData === 'object' && roomData._id) {
-            const roomArray = [roomData];
-            setRooms(roomArray);
-            setActiveChat(roomData._id);
-          }
-        } catch (error) {
-          console.error('Ошибка при загрузке общей комнаты для подключения:', error);
-        }
-      };
-
-      fetchGeneralRoom();
-    } else if (socket && user && activeChat) {
-      // Если сокет подключен, пользователь авторизован и есть активная комната, подключаемся к ней
-      const token = localStorage.getItem('token');
-      socket.emit('joinRoom', { roomId: activeChat, userId: user._id, token });
-    }
-  }, [socket, user, activeChat]);*/
+  }, [socket, activeChat, user]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -182,13 +157,10 @@ const ChatManager = ({ theme }) => {
   const sendMessage = async () => {
     if (message.trim() && activeChat && user && socket) {
       try {
-        const token = localStorage.getItem('token');
         // Отправляем сообщение через сокет
         socket.emit('sendMessage', {
           roomId: activeChat,
-          userId: user._id,
-          text: message.trim(),
-          token
+          text: message.trim()
         });
 
         setMessage('');
