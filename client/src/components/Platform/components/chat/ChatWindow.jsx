@@ -62,6 +62,30 @@ const ChatMessages = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  
+  /* Стили для полосы прокрутки */
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: ${props => props.theme.chat.background};
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: ${props => props.theme.primary};
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    width: 12px;
+    background: ${props => props.theme.primary + 'CC'};
+  }
+
+  /* Поддержка для Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: ${props => props.theme.primary + ' ' + props.theme.chat.background};
 `;
 
 const Message = styled(({ isOwn, ...props }) => <div {...props} />)`
