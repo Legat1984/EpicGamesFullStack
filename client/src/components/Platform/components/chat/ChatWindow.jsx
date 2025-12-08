@@ -80,12 +80,17 @@ const ChatMessages = styled.div`
 
   &::-webkit-scrollbar-thumb:hover {
     width: 12px;
-    background: ${props => props.theme.primary + 'CC'};
+    background: ${props => props.theme.primaryDark || props.theme.primary + 'AA'};
   }
 
   /* Поддержка для Firefox */
   scrollbar-width: thin;
   scrollbar-color: ${props => props.theme.primary + ' ' + props.theme.chat.background};
+
+   /* Для Firefox при наведении на полосу прокрутки */
+   &:hover {
+    scrollbar-color: ${props => (props.theme.primaryDark || props.theme.primary + 'AA') + ' ' + props.theme.chat.background};
+  }
 `;
 
 const Message = styled(({ isOwn, ...props }) => <div {...props} />)`
