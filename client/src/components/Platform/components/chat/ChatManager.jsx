@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { UserContext } from '../../../../contexts/UserContext';
 import { useSocket } from '../../contexts/SocketContext';
-//import { getRoomsGeneral, getRooms, getRoomMessages, sendMessage as sendApiMessage } from '../../services/chatService';
 import ChatWindow from './ChatWindow';
 import ChatIconButton from './ChatIcon';
 
