@@ -13,6 +13,7 @@ const ChatManager = ({ theme }) => {
   const [messages, setMessages] = useState({});
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [roomsLoaded, setRoomsLoaded] = useState(new Set());
   const [isMobile, setIsMobile] = useState(false);
   const chatEndRef = useRef(null);
 
@@ -22,64 +23,7 @@ const ChatManager = ({ theme }) => {
       console.log("Сокет подключен! Подключаемся к комнате:", activeChat);
     }
   }, [socket, isConnected, user, activeChat]);
-  /*useEffect(() => {
-    const fetchGeneralRoom = async () => {
-      try {
-        const roomData = await getRoomsGeneral();
-        console.log(roomData);
-
-        // Проверяем, что возвращенные данные - это объект комнаты, а не массив
-        if (roomData && typeof roomData === 'object' && roomData._id) {
-          const roomArray = [roomData];
-          setRooms(roomArray);
-
-          // Устанавливаем общую комнату как активную
-          if (!activeChat) {
-            setActiveChat(roomData._id);
-          }
-        } else {
-          console.error('Неверный формат данных общей комнаты:', roomData);
-          setRooms([]);
-        }
-      } catch (error) {
-        console.error('Ошибка при загрузке общей комнаты:', error);
-        // Устанавливаем пустой массив в случае ошибки
-        setRooms([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchGeneralRoom();
-  }, []);*/ // Убрали activeChat из зависимостей, чтобы загрузка происходила только один раз
-
-  // Загрузка сообщений комнаты при смене активной комнаты (только если сокет не подключен)
-  /*useEffect(() => {
-    if (activeChat && (!socket || !isConnected)) {
-      // Если сокет не подключен, используем API для получения сообщений
-      const fetchMessages = async () => {
-        try {
-          const roomMessages = await getRoomMessages(activeChat);
-          // Убедимся, что roomMessages - это массив
-          const messagesArray = Array.isArray(roomMessages) ? roomMessages : [];
-          setMessages(prev => ({
-            ...prev,
-            [activeChat]: messagesArray.map(msg => ({
-              ...msg,
-              id: msg._id,
-              isOwn: msg.user._id === user?._id,
-              time: new Date(msg.createdAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
-            }))
-          }));
-        } catch (error) {
-          console.error('Ошибка при загрузке сообщений:', error);
-        }
-      };
-
-      fetchMessages();
-    }
-  }, [activeChat, user, socket, isConnected]);*/
-
+  
   // Обработка сокет-событий
   useEffect(() => {
     if (socket && activeChat) {
@@ -92,7 +36,7 @@ const ChatManager = ({ theme }) => {
             [activeChat]: [...currentMessages, {
               ...message,
               id: message._id,
-              isOwn: message.user._id === user?._id,
+              isOwn: (message.user?._id || message.user) === user?._id,
               time: new Date(message.createdAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
             }]
           };
@@ -103,20 +47,41 @@ const ChatManager = ({ theme }) => {
       const handleLoadMessages = (data) => {
         // Убедимся, что data.messages - это массив
         const messagesArray = Array.isArray(data.messages) ? data.messages : [];
+        // Используем roomId из данных, чтобы избежать проблем с синхронизацией
+        const roomId = data.roomId || activeChat;
         setMessages(prev => ({
           ...prev,
-          [activeChat]: messagesArray.map(msg => ({
+          [roomId]: messagesArray.map(msg => ({
             ...msg,
             id: msg._id,
-            isOwn: msg.user._id === user?._id,
+            isOwn: (msg.user?._id || msg.user) === user?._id,
             time: new Date(msg.createdAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
           }))
         }));
+
+        // Отмечаем, что комната загружена и устанавливаем loading в false
+        setRoomsLoaded(prev => {
+          const newSet = new Set(prev);
+          newSet.add(roomId);
+          return newSet;
+        });
+
+        // Если загружаем сообщения для активной комнаты, устанавливаем loading в false
+        if (roomId === activeChat) {
+          setLoading(false);
+        }
       };
 
       // Обработка ошибок
       const handleError = (errorData) => {
         console.error('Ошибка чата:', errorData.message);
+        // Можно добавить уведомление пользователю о проблеме
+        if (errorData.message.includes('Комната не найдена') || errorData.message.includes('ID комнаты')) {
+          console.log('Ошибка при подключении к комнате:', errorData.message);
+          // Попытаться установить другую комнату или уведомить пользователя
+        }
+        // В любом случае устанавливаем loading в false, чтобы прекратить показ индикатора загрузки
+        setLoading(false);
       };
 
       socket.on('receiveMessage', handleMessageReceive);
@@ -154,6 +119,16 @@ const ChatManager = ({ theme }) => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, activeChat]);
 
+  // Управление состоянием загрузки при смене активной комнаты
+  useEffect(() => {
+    if (activeChat) {
+      // Если комната уже была загружена ранее, не устанавливаем loading в true
+      if (!roomsLoaded.has(activeChat)) {
+        setLoading(true);
+      }
+    }
+  }, [activeChat, roomsLoaded]);
+
   const sendMessage = async () => {
     if (message.trim() && activeChat && user && socket) {
       try {
@@ -166,14 +141,6 @@ const ChatManager = ({ theme }) => {
         setMessage('');
       } catch (error) {
         console.error('Ошибка при отправке сообщения:', error);
-
-        // Резервный вариант - отправка через API
-        /*try {
-          await sendApiMessage(activeChat, message.trim());
-          setMessage('');
-        } catch (apiError) {
-          console.error('Ошибка при отправке сообщения через API:', apiError);
-        }*/
       }
     }
   };

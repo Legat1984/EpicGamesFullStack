@@ -213,12 +213,12 @@ const ChatWindow = ({
                 <Message key={msg.id} isOwn={msg.isOwn}>
                   <MessageAvatar
                     src={msg.user?.avatar || 'https://placehold.co/32x32'}
-                    alt={msg.user?.username || msg.user}
+                    alt={msg.user?.username || msg.user?.login || 'Аноним'}
                   />
                   <MessageContent isOwn={msg.isOwn}>
                     <div>{msg.text}</div>
                     <MessageInfo>
-                      <span>{msg.user?.username || msg.user}</span>
+                      <span>{msg.user?.username || msg.user?.login || 'Аноним'}</span>
                       <span>{msg.time}</span>
                     </MessageInfo>
                   </MessageContent>
