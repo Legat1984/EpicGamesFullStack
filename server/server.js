@@ -9,7 +9,6 @@ const cors = require('cors'); // Модуль для настройки CORS (Cr
 // Импортируем роуты
 const authRoutes = require('./routes/auth');
 const gamesRoutes = require('./routes/games');
-const chatRoutes = require('./routes/chat');
 
 // Создаем экземпляр Express-приложения
 const app = express()
@@ -46,7 +45,6 @@ mongoose.connect(process.env.MONGO_URL)
 // Подключаем роуты
 app.use('/api/users', authRoutes)
 app.use('/api/games', gamesRoutes)
-//app.use('/api/chat', chatRoutes)
 
 // Подключаем Socket.IO
 const http = require('http');
