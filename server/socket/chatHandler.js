@@ -148,26 +148,6 @@ module.exports = (io) => {
 
     // Отключение пользователя
     socket.on('disconnect', () => {
-      try {
-        const { roomId } = socket.roomId;
-        const userId = socket.user.userId || socket.user.id;
-
-        socket.leave(roomId);
-
-        // Удаляем пользователя из участников комнаты
-        Room.findByIdAndUpdate(roomId, {
-          $pull: { participants: userId }
-        });
-
-        socket.to(roomId).emit('userLeft', {
-          userId,
-          roomId,
-          message: `Пользователь покинул комнату ${roomId}`
-        });
-      } catch (error) {
-        console.error('Ошибка при выходе из комнаты:', error);
-        socket.emit('error', { message: 'Ошибка при выходе из комнаты' });
-      }
       console.log('Пользователь отключился:', socket.id, 'User ID:', socket.user.userId || socket.user.id);
     });
   });
