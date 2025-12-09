@@ -87,8 +87,10 @@ router.post(
       user.confirmationExpires = codeExpires;
       await user.save();
 
-      // Отправка письма с кодом подтверждения
-      await sendConfirmationEmail(email, confirmationCode);
+      // Отправка письма с кодом подтверждения (асинхронно, не блокирует ответ)
+      sendConfirmationEmail(email, confirmationCode).catch(err => {
+        console.error('Ошибка при отправке email:', err.message);
+      });
 
       // Возврат успешного ответа с токеном
       return res.status(200).json({ message: 'Регистрация пользователя прошла успешно! На ваш e-mail было отправлено письмо с кодом подтверждения. Введите код в поле ввода и нажмите "Подтвердить"', token });
@@ -127,8 +129,10 @@ router.post('/resend-confirmation', async (req, res) => {
     user.confirmationExpires = codeExpires;
     await user.save();
 
-    // Отправка письма с новым кодом подтверждения
-    await sendConfirmationEmail(user.email, confirmationCode);
+    // Отправка письма с новым кодом подтверждения (асинхронно, не блокирует ответ)
+    sendConfirmationEmail(user.email, confirmationCode).catch(err => {
+      console.error('Ошибка при отправке email:', err.message);
+    });
 
     // Возврат успешного ответа
     return res.status(200).json({ message: 'Код подтверждения был отправлен повторно.' });
@@ -214,8 +218,10 @@ router.post('/request-reset', [
     user.confirmationExpires = codeExpires;
     await user.save();
 
-    // Отправка письма с кодом подтверждения
-    await sendConfirmationEmail(email, confirmationCode);
+    // Отправка письма с кодом подтверждения (асинхронно, не блокирует ответ)
+    sendConfirmationEmail(email, confirmationCode).catch(err => {
+      console.error('Ошибка при отправке email:', err.message);
+    });
 
     // Возврат успешного ответа с токеном
     return res.status(200).json({ message: 'На e-mail было отправлено письмо с кодом подтверждения электронной почты. Введите код в поле ввода и нажмите "Подтвердить"', token });
