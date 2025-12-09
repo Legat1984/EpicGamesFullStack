@@ -93,6 +93,20 @@ const EpicGamesContentGames = () => {
         if (user && user.favoriteGames) {
             setFavoriteGames(user.favoriteGames);
         }
+
+        // Добавляем слушатель события обновления пользователя для синхронизации избранных игр
+        const handleUserUpdate = () => {
+            const updatedUser = JSON.parse(localStorage.getItem('user'));
+            if (updatedUser && updatedUser.favoriteGames) {
+                setFavoriteGames(updatedUser.favoriteGames);
+            }
+        };
+
+        window.addEventListener('userUpdate', handleUserUpdate);
+
+        return () => {
+            window.removeEventListener('userUpdate', handleUserUpdate);
+        };
     }, []);
 
     const toggleFavorite = (gameId) => {

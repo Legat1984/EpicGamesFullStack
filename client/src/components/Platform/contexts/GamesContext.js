@@ -53,6 +53,25 @@ export const GamesProvider = ({ children }) => {
     };
 
     fetchGames();
+
+    // Добавляем слушатель события обновления пользователя для синхронизации избранных игр
+    const handleUserUpdate = () => {
+      const user = JSON.parse(localStorage.getItem('user'));
+      const favoriteGameIds = user && user.favoriteGames ? new Set(user.favoriteGames) : new Set();
+
+      setGames(prevGames =>
+        prevGames.map(game => ({
+          ...game,
+          favorite: favoriteGameIds.has(game.id)
+        }))
+      );
+    };
+
+    window.addEventListener('userUpdate', handleUserUpdate);
+
+    return () => {
+      window.removeEventListener('userUpdate', handleUserUpdate);
+    };
   }, []);
 
   useEffect(() => {
