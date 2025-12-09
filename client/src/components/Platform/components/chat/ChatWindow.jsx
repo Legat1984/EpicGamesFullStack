@@ -174,7 +174,8 @@ const ChatWindow = ({
   theme,
   rooms = [],
   loading = false,
-  isConnected = false
+  isConnected = false,
+  currentUser = null
 }) => {
   const chatEndRef = useRef(null);
 
@@ -237,21 +238,25 @@ const ChatWindow = ({
             </ChatTabs>
 
             <ChatMessages>
-              {messages[activeChat]?.map(msg => (
-                <Message key={msg.id} isOwn={msg.isOwn}>
-                  <MessageAvatar
-                    src={msg.user?.avatar || 'https://placehold.co/32x32'}
-                    alt={msg.user?.username || msg.user?.login || 'Аноним'}
-                  />
-                  <MessageContent isOwn={msg.isOwn}>
-                    <div>{msg.text}</div>
-                    <MessageInfo>
-                      <span>{msg.user?.username || msg.user?.login || 'Аноним'}</span>
-                      <span>{msg.time}</span>
-                    </MessageInfo>
-                  </MessageContent>
-                </Message>
-              ))}
+              {messages[activeChat]?.map(msg => {
+                // Определяем, является ли сообщение моим
+                const isOwn = currentUser && msg.user && (msg.user.id === currentUser.id || msg.user.login === currentUser.login);
+                return (
+                  <Message key={msg.id} isOwn={isOwn}>
+                    <MessageAvatar
+                      src={msg.user?.avatar || 'https://placehold.co/32x32'}
+                      alt={msg.user?.username || msg.user?.login || 'Аноним'}
+                    />
+                    <MessageContent isOwn={isOwn}>
+                      <div>{msg.text}</div>
+                      <MessageInfo>
+                        <span>{msg.user?.username || msg.user?.login || 'Аноним'}</span>
+                        <span>{msg.time}</span>
+                      </MessageInfo>
+                    </MessageContent>
+                  </Message>
+                );
+              })}
               {(!messages[activeChat] || messages[activeChat].length === 0) && (
                 <div style={{ textAlign: 'center', padding: '20px', color: theme.textSecondary }}>
                   Нет сообщений в этой комнате
