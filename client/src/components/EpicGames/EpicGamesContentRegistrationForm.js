@@ -11,7 +11,7 @@ const Form = styled.form`
     align-items: center;
     width: 100%;
     max-width: 350px;
-    
+
     @media (max-width: 768px) {
         width: 100%;
         max-width: 100%;
@@ -70,7 +70,7 @@ const Input = styled.input`
         opacity: 1;
         transform: translateY(-35px);
     }
-    
+
     @media (max-width: 768px) {
         height: 50px;
         font-size: 18px;
@@ -102,7 +102,7 @@ const Button = styled.button`
         background-color: #cccccc;
         cursor: not-allowed;
     }
-    
+
     @media (max-width: 768px) {
         height: 55px;
         min-height: 55px;
@@ -126,7 +126,7 @@ const ButtonLink = styled.button`
         color: #0056b3;
         text-decoration: underline;
     }
-    
+
     @media (max-width: 768px) {
         font-size: 18px;
     }
@@ -143,13 +143,30 @@ const RegisterForm = ({ onSubmit, onChangeFormState, errorMessage, clearError })
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+
+        // Локальная валидация
+        if (password !== confirmPassword) {
+            setLocalErrorMessage("Пароли не совпадают");
+            return;
+        }
+
+        if (password.length < 8) {
+            setLocalErrorMessage("Пароль должен содержать минимум 8 символов");
+            return;
+        }
+
+        if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+            setLocalErrorMessage("Пароль должен содержать хотя бы одну заглавную букву, одну строчную букву и одну цифру");
+            return;
+        }
+
         setIsSubmitting(true);
+        setLocalErrorMessage('');
+
         try {
-            if (password === confirmPassword) {
-                await onSubmit({ login, email, password });
-            } else {
-                setLocalErrorMessage("Пароли не совпадают");
-            }
+            await onSubmit({ login, email, password });
+        } catch (error) {
+            // Обработка ошибки в onSubmit будет происходить через errorMessage от родителя
         } finally {
             setIsSubmitting(false);
         }
@@ -158,13 +175,13 @@ const RegisterForm = ({ onSubmit, onChangeFormState, errorMessage, clearError })
     return (
         <Form onSubmit={handleSubmit}>
             <Title>Регистрация</Title>
-            <Errors message={localErrorMessage || errorMessage} clearMessage={clearError} />
+            <Errors message={localErrorMessage || errorMessage} clearMessage={() => { setLocalErrorMessage(''); clearError(); }} />
             <FormInputContainer>
-                <Input 
-                    type="text" 
-                    value={login} 
-                    onChange={(e) => setLogin(e.target.value)} 
-                    required 
+                <Input
+                    type="text"
+                    value={login}
+                    onChange={(e) => setLogin(e.target.value)}
+                    required
                     $orientation={orientation}
                     $device={device}
                     placeholder="Логин:"
@@ -173,11 +190,11 @@ const RegisterForm = ({ onSubmit, onChangeFormState, errorMessage, clearError })
                 <Label htmlFor="login-input" $isActive={login}>Логин:</Label>
             </FormInputContainer>
             <FormInputContainer>
-                <Input 
-                    type="email" 
-                    value={email} 
-                    onChange={(e) => setEmail(e.target.value)} 
-                    required 
+                <Input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
                     $orientation={orientation}
                     $device={device}
                     placeholder="Email:"
@@ -186,11 +203,11 @@ const RegisterForm = ({ onSubmit, onChangeFormState, errorMessage, clearError })
                 <Label htmlFor="email-input" $isActive={email}>Email:</Label>
             </FormInputContainer>
             <FormInputContainer>
-                <Input 
-                    type="password" 
-                    value={password} 
-                    onChange={(e) => setPassword(e.target.value)} 
-                    required 
+                <Input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
                     $orientation={orientation}
                     $device={device}
                     placeholder="Пароль:"
@@ -199,11 +216,11 @@ const RegisterForm = ({ onSubmit, onChangeFormState, errorMessage, clearError })
                 <Label htmlFor="password-input" $isActive={password}>Пароль:</Label>
             </FormInputContainer>
             <FormInputContainer>
-                <Input 
-                    type="password" 
-                    value={confirmPassword} 
-                    onChange={(e) => setConfirmPassword(e.target.value)} 
-                    required 
+                <Input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
                     $orientation={orientation}
                     $device={device}
                     placeholder="Подтвердите пароль:"

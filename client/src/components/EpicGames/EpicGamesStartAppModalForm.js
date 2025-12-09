@@ -143,14 +143,14 @@ const ModalFormContainer = ({ closeModal, formState: initialFormState }) => {
         }
     };
 
-    const handleRegistrationSubmit = async (credentails) => {
+    const handleRegistrationSubmit = async (credentials) => {
         try {
             const response = await fetch(`${process.env.REACT_APP_API_URL}/api/users/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(credentails)
+                body: JSON.stringify(credentials)
             });
 
             if (response.ok) {
