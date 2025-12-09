@@ -9,6 +9,10 @@ export const UserProvider = ({ children }) => {
         return storedUser ? JSON.parse(storedUser) : null;
     });
     const [isAuthenticated, setIsAuthenticated] = useState(user !== null);
+    const [favoriteGames, setFavoriteGames] = useState(() => {
+        const storedUser = localStorage.getItem('user');
+        return storedUser ? JSON.parse(storedUser).favoriteGames || [] : [];
+    });
 
     const handleUnauthenticated = useCallback(() => {
         setUser(null);
@@ -98,6 +102,8 @@ export const UserProvider = ({ children }) => {
 
                     // Обновляем состояние пользователя
                     setUser(userData);
+                    // Обновляем состояние избранных игр
+                    setFavoriteGames(userData.favoriteGames);
 
                     // Вызываем событие обновления пользователя для перезагрузки игр
                     window.dispatchEvent(new CustomEvent('userUpdate'));
@@ -120,7 +126,7 @@ export const UserProvider = ({ children }) => {
     }, [checkToken, updateFavoritesList]);
 
     return (
-        <UserContext.Provider value={{ user, isAuthenticated, login, logout }}>
+        <UserContext.Provider value={{ user, isAuthenticated, favoriteGames, setFavoriteGames, login, logout }}>
             {children}
         </UserContext.Provider>
     );

@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
+import { UserContext } from '../../contexts/UserContext';
 import styled from 'styled-components';
 
 import StarSVG from '../../assets/EpicGames/images/favorite.svg';
@@ -77,7 +78,7 @@ const gamesList = async () => {
 
 const EpicGamesContentGames = () => {
     const [games, setGames] = useState([]);
-    const [favoriteGames, setFavoriteGames] = useState([]);
+    const { favoriteGames } = useContext(UserContext);
 
     useEffect(() => {
         const fetchGames = async () => {
@@ -88,25 +89,49 @@ const EpicGamesContentGames = () => {
         };
 
         fetchGames();
-
-        const user = JSON.parse(localStorage.getItem('user'));
-        if (user && user.favoriteGames) {
-            setFavoriteGames(user.favoriteGames);
-        }
     }, []);
 
-    const toggleFavorite = (gameId) => {
-        setFavoriteGames((prevFavorites) => {
-            if (prevFavorites.some(favGame => favGame.id === gameId)) {
-                return prevFavorites.filter(favGame => favGame.id !== gameId);
+    const toggleFavorite = async (gameId) => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            // Определяем, является ли игра избранной
+            const isCurrentlyFavorite = favoriteGames.some(favGame => favGame === gameId);
+            
+            let response;
+            if (!isCurrentlyFavorite) {
+                // Добавляем в избранное
+                response = await fetch(`${process.env.REACT_APP_API_URL}/api/games/favorite/add/${gameId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
             } else {
-                return [...prevFavorites, { id: gameId }];
+                // Убираем из избранного
+                response = await fetch(`${process.env.REACT_APP_API_URL}/api/games/favorite/remove/${gameId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
             }
-        });
+
+            if (response.ok) {
+                // Обновление произойдет автоматически через UserContext
+            } else {
+                console.error('Ошибка при изменении статуса избранного');
+            }
+        } catch (error) {
+            console.error('Ошибка при изменении статуса избранного:', error);
+        }
     };
 
     const isFavorite = (gameId) => {
-        return favoriteGames.some(favGame => favGame.id === gameId);
+        return favoriteGames.some(favGameId => favGameId === gameId);
     };
 
     return (
