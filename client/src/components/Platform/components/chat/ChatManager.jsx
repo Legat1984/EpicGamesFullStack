@@ -36,7 +36,6 @@ const ChatManager = ({ theme }) => {
             [activeChat]: [...currentMessages, {
               ...message,
               id: message._id,
-              isOwn: (message.user?._id || message.user) === user?._id,
               time: new Date(message.createdAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
             }]
           };
@@ -54,7 +53,6 @@ const ChatManager = ({ theme }) => {
           [roomId]: messagesArray.map(msg => ({
             ...msg,
             id: msg._id,
-            isOwn: (msg.user?._id || msg.user) === user?._id,
             time: new Date(msg.createdAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
           }))
         }));
@@ -179,6 +177,7 @@ const ChatManager = ({ theme }) => {
         rooms={formattedRooms}
         loading={loading}
         isConnected={isConnected}
+        user={user}
       />
     </>
   );

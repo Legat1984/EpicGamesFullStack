@@ -175,7 +175,7 @@ const ChatWindow = ({
   rooms = [],
   loading = false,
   isConnected = false,
-  currentUser = null
+  user = null
 }) => {
   const chatEndRef = useRef(null);
 
@@ -240,7 +240,7 @@ const ChatWindow = ({
             <ChatMessages>
               {messages[activeChat]?.map(msg => {
                 // Определяем, является ли сообщение моим
-                const isOwn = currentUser && msg.user && (msg.user.id === currentUser.id || msg.user.login === currentUser.login);
+                const isOwn = user && msg.user && ((msg.user._id || msg.user.id) === (user._id || user.id));
                 return (
                   <Message key={msg.id} isOwn={isOwn}>
                     <MessageAvatar
