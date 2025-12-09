@@ -74,15 +74,50 @@ export const UserProvider = ({ children }) => {
         return false;
     }, [handleUnauthenticated, refreshToken]);
 
+    // Функция для обновления списка избранных игр
+    const updateFavoritesList = useCallback(async () => {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        try {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/games/favorite`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const data = await response.json();
+            if (response.ok && data.favoriteGames) {
+                // Обновляем информацию о пользователе в localStorage с новым списком избранных игр
+                const userData = JSON.parse(localStorage.getItem('user'));
+                if (userData) {
+                    userData.favoriteGames = data.favoriteGames.map(game => game._id);
+                    localStorage.setItem('user', JSON.stringify(userData));
+
+                    // Обновляем состояние пользователя
+                    setUser(userData);
+
+                    // Вызываем событие обновления пользователя для перезагрузки игр
+                    window.dispatchEvent(new CustomEvent('userUpdate'));
+                }
+            }
+        } catch (error) {
+            console.error('Ошибка при обновлении списка избранных игр:', error);
+        }
+    }, []);
+
     useEffect(() => {
         checkToken();
 
-        const interval = setInterval(() => {
+        const interval = setInterval(async () => {
             checkToken();
+            await updateFavoritesList();
         }, 60000);
 
         return () => clearInterval(interval);
-    }, [checkToken]);
+    }, [checkToken, updateFavoritesList]);
 
     return (
         <UserContext.Provider value={{ user, isAuthenticated, login, logout }}>
