@@ -65,7 +65,7 @@ const ChatMessages = styled.div`
   
   /* Стили для полосы прокрутки */
   &::-webkit-scrollbar {
-    width: 8px;
+    width: 12px;
   }
 
   &::-webkit-scrollbar-track {
@@ -79,12 +79,11 @@ const ChatMessages = styled.div`
   }
 
   &::-webkit-scrollbar-thumb:hover {
-    width: 12px;
     background: ${props => props.theme.primaryDark || props.theme.primary + 'AA'};
   }
 
   /* Поддержка для Firefox */
-  scrollbar-width: thin;
+  scrollbar-width: auto;
   scrollbar-color: ${props => props.theme.primary + ' ' + props.theme.chat.background};
 
    /* Для Firefox при наведении на полосу прокрутки */
