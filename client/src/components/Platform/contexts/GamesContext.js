@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { UserContext } from '../../../contexts/UserContext';
 
 const GamesContext = createContext();
 
@@ -15,6 +16,7 @@ export const GamesProvider = ({ children }) => {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { favoriteGames } = useContext(UserContext);
 
   useEffect(() => {
     const fetchGames = async () => {
@@ -31,11 +33,8 @@ export const GamesProvider = ({ children }) => {
         }
 
         const gamesData = await response.json();
-        // Получаем данные пользователя из localStorage
-        const user = JSON.parse(localStorage.getItem('user'));
-
-        // Преобразуем массив избранных ID в Set для быстрого поиска
-        const favoriteGameIds = user && user.favoriteGames ? new Set(user.favoriteGames) : new Set();
+        // Используем favoriteGames из UserContext
+        const favoriteGameIds = new Set(favoriteGames || []);
 
         // Добавляем свойство favorite к каждой игре
         const gamesWithFavorites = gamesData.map(game => ({
@@ -53,7 +52,7 @@ export const GamesProvider = ({ children }) => {
     };
 
     fetchGames();
-  }, []);
+  }, [favoriteGames]);
 
   useEffect(() => {
     setFavorites(games.filter(game => game.favorite));
@@ -89,38 +88,10 @@ export const GamesProvider = ({ children }) => {
       const result = await response.json();
 
       if (response.ok && !result.errors) {
-        // Получаем текущий объект user из localStorage
-        const userData = JSON.parse(localStorage.getItem('user'));
-        if (userData) {
-          let updatedFavoriteGames = [...userData.favoriteGames];
-          if (!isFavorite) {
-            // Добавляем gameId в массив
-            if (!updatedFavoriteGames.includes(gameId)) {
-              updatedFavoriteGames.push(gameId);
-            }
-          } else {
-            // Убираем gameId из массива
-            updatedFavoriteGames = updatedFavoriteGames.filter(id => id !== gameId);
-          }
-          // Обновляем localStorage
-          userData.favoriteGames = updatedFavoriteGames;
-          localStorage.setItem('user', JSON.stringify(userData));
-        }
-
-        // Обновляем локальное состояние
-        setGames(prevGames =>
-          prevGames.map(game =>
-            game.id === gameId ? { ...game, favorite: !isFavorite } : game
-          )
-        );
+        // Обновление произойдет автоматически через UserContext
       }
     } catch (error) {
       console.error('Ошибка при переключении избранного:', error);
-      setGames(prevGames =>
-        prevGames.map(game =>
-          game.id === gameId ? { ...game, favorite: !game.favorite } : game
-        )
-      );
     }
   };
 
