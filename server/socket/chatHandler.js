@@ -231,8 +231,21 @@ module.exports = (io) => {
     });
 
     // Получение списка комнат доступных пользователю
-    socket.on('getRooms', async (data) => {
+    socket.on('getRooms', async () => {
+      try {
+        const userId = socket.user.userId || socket.user.id;
 
+        // Находим все комнаты, в которых участвует пользователь
+        const userRooms = await Room.find({
+          participants: userId
+        }).sort({ createdAt: -1 }); // Сортируем по дате создания, новые первыми
+
+        // Отправляем пользователю список комнат
+        socket.emit('roomsList', userRooms);
+      } catch (error) {
+        console.error('Ошибка при получении списка комнат:', error);
+        socket.emit('error', { message: 'Ошибка при получении списка комнат' });
+      }
     });
   });
 };

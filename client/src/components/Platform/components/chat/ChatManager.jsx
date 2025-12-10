@@ -22,7 +22,7 @@ const ChatManager = ({ theme }) => {
   useEffect(() => {
     // Загрузка списка комнат при подключении к сокету
     if (socket && isConnected && user) {
-      socket.emit('getRooms', user);
+      socket.emit('getRooms');
     }
     if (socket && isConnected && user && activeChat) {
       console.log("Сокет подключен! Подключаемся к комнате:", activeChat);
