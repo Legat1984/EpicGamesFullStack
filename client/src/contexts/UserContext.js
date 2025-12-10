@@ -27,6 +27,8 @@ export const UserProvider = ({ children }) => {
     };
 
     const logout = () => {
+        // Отправляем событие о выходе из системы для уведомления других компонентов
+        window.dispatchEvent(new CustomEvent('userLogout'));
         handleUnauthenticated();
     };
 

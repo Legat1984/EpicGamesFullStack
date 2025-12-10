@@ -7,27 +7,30 @@ import ChatIconButton from './ChatIcon';
 const ChatManager = ({ theme }) => {
   const { user } = useContext(UserContext);
   const { socket, isConnected } = useSocket();
+  const GENERAL_CHAT_ID = '692c99e7640a5c477a79ef11'; // ID общей комнаты
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [activeChat, setActiveChat] = useState('692c99e7640a5c477a79ef11');
+  const [activeChat, setActiveChat] = useState(GENERAL_CHAT_ID);
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState({});
   const [rooms, setRooms] = useState([]);
   const [roomsLoading, setRoomsLoading] = useState(true);
   const [messagesLoading, setMessagesLoading] = useState(true);
   const [roomsLoaded, setRoomsLoaded] = useState(new Set());
+  const [joinedRooms, setJoinedRooms] = useState(new Set([GENERAL_CHAT_ID])); // Отслеживаем все подключенные комнаты
   const [isMobile, setIsMobile] = useState(false);
   const chatEndRef = useRef(null);
 
-  // Загрузка общей комнаты при монтировании
+  // Подключение к общей комнате при монтировании и при подключении сокета
   useEffect(() => {
-    // Загрузка списка комнат при подключении к сокету
     if (socket && isConnected && user) {
+      // Подключаемся к общей комнате при инициализации
+      socket.emit('joinRoom', { roomId: GENERAL_CHAT_ID });
+      setJoinedRooms(prev => new Set([...prev, GENERAL_CHAT_ID]));
+
+      // Загрузка списка комнат
       socket.emit('getRooms');
     }
-    if (socket && isConnected && user && activeChat) {
-      console.log("Сокет подключен! Подключаемся к комнате:", activeChat);
-    }
-  }, [socket, isConnected, user, activeChat]);
+  }, [socket, isConnected, user, GENERAL_CHAT_ID]);
 
   // Обработка получения списка комнат
   useEffect(() => {
@@ -44,17 +47,17 @@ const ChatManager = ({ theme }) => {
       };
     }
   }, [socket]);
-  
+
   // Обработка сокет-событий
   useEffect(() => {
-    if (socket && activeChat) {
+    if (socket) {
       // Обработка получения нового сообщения
       const handleMessageReceive = (message) => {
         setMessages(prev => {
-          const currentMessages = prev[activeChat] || [];
+          const currentMessages = prev[message.room] || [];
           return {
             ...prev,
-            [activeChat]: [...currentMessages, {
+            [message.room]: [...currentMessages, {
               ...message,
               id: message._id,
               time: new Date(message.createdAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
@@ -68,7 +71,7 @@ const ChatManager = ({ theme }) => {
         // Убедимся, что data.messages - это массив
         const messagesArray = Array.isArray(data.messages) ? data.messages : [];
         // Используем roomId из данных, чтобы избежать проблем с синхронизацией
-        const roomId = data.roomId || activeChat;
+        const roomId = data.roomId;
         setMessages(prev => ({
           ...prev,
           [roomId]: messagesArray.map(msg => ({
@@ -107,23 +110,85 @@ const ChatManager = ({ theme }) => {
       socket.on('loadMessages', handleLoadMessages);
       socket.on('error', handleError);
 
-      // Присоединяемся к комнате при изменении activeChat
-      if (user && activeChat) {
-        socket.emit('joinRoom', { roomId: activeChat });
-      }
-
       return () => {
         socket.off('receiveMessage', handleMessageReceive);
         socket.off('loadMessages', handleLoadMessages);
         socket.off('error', handleError);
-
-        // Покидаем комнату при размонтировании
-        if (user && activeChat) {
-          socket.emit('leaveRoom', { roomId: activeChat });
-        }
       };
     }
-  }, [socket, activeChat, user]);
+  }, [socket, activeChat]);
+
+  // Эффект для управления подключениями к комнатам
+  useEffect(() => {
+    if (socket && user && activeChat && isConnected) {
+      // Если пользователь еще не подключен к активной комнате, подключаемся
+      if (!joinedRooms.has(activeChat)) {
+        socket.emit('joinRoom', { roomId: activeChat });
+        setJoinedRooms(prev => new Set([...prev, activeChat]));
+      }
+    }
+  }, [socket, user, activeChat, isConnected, joinedRooms]);
+
+  // Функция для подключения к комнате (используется при необходимости подключиться к комнате без переключения на неё)
+  const joinRoom = (roomId) => {
+    if (socket && user && isConnected && !joinedRooms.has(roomId)) {
+      socket.emit('joinRoom', { roomId });
+      setJoinedRooms(prev => new Set([...prev, roomId]));
+    }
+  };
+
+  // Эффект для обработки выхода из системы
+  useEffect(() => {
+    const handleLogout = () => {
+      // При выходе из системы покидаем все комнаты, включая общую
+      if (socket && user) {
+        joinedRooms.forEach(roomId => {
+          socket.emit('leaveRoom', { roomId });
+        });
+      }
+    };
+
+    // Слушаем кастомное событие logout
+    window.addEventListener('userLogout', handleLogout);
+
+    return () => {
+      window.removeEventListener('userLogout', handleLogout);
+    };
+  }, [socket, user, joinedRooms]);
+
+  // Эффект для обработки закрытия вкладки/браузера
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      // При закрытии вкладки/браузера покидаем все комнаты
+      if (socket && user) {
+        joinedRooms.forEach(roomId => {
+          socket.emit('leaveRoom', { roomId });
+        });
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [socket, user, joinedRooms]);
+
+  // Эффект для очистки соединений при размонтировании
+  useEffect(() => {
+    return () => {
+      // При размонтировании покидаем все комнаты, кроме общей
+      if (socket && user) {
+        joinedRooms.forEach(roomId => {
+          if (roomId !== GENERAL_CHAT_ID) {
+            socket.emit('leaveRoom', { roomId });
+          }
+        });
+        // Покидаем общую комнату только при полном выходе из системы
+        // socket.emit('leaveRoom', { roomId: GENERAL_CHAT_ID }); // Закомментировано, чтобы не покидать общую комнату при обычном размонтировании
+      }
+    };
+  }, [socket, user, joinedRooms, GENERAL_CHAT_ID]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -164,12 +229,35 @@ const ChatManager = ({ theme }) => {
     }
   };
 
+  // Функция для переключения между комнатами
+  const switchToRoom = (roomId) => {
+    // Всегда подключаемся к комнате при переключении, если ещё не подключены
+    joinRoom(roomId);
+    // Меняем активную комнату
+    setActiveChat(roomId);
+  };
+
   const toggleChat = () => {
     setIsChatOpen(!isChatOpen);
   };
 
   // Форматируем комнаты для отображения в интерфейсе
-  const formattedRooms = Array.isArray(rooms) ? rooms.map(room => ({
+  // Убедимся, что общая комната всегда присутствует в списке
+  const generalRoomExists = rooms.some(room => room._id === GENERAL_CHAT_ID);
+
+  let allRooms = [...rooms];
+  if (!generalRoomExists) {
+    // Добавляем фиктивную запись для общей комнаты, если её нет в списке
+    allRooms.unshift({
+      _id: GENERAL_CHAT_ID,
+      name: 'Общий чат',
+      lastMessage: '',
+      lastMessageAt: null,
+      participants: []
+    });
+  }
+
+  const formattedRooms = Array.isArray(allRooms) ? allRooms.map(room => ({
     id: room._id,
     name: room.name,
     lastMessage: room.lastMessage,
@@ -191,7 +279,7 @@ const ChatManager = ({ theme }) => {
         isChatOpen={isChatOpen}
         toggleChat={toggleChat}
         activeChat={activeChat}
-        setActiveChat={setActiveChat}
+        setActiveChat={switchToRoom} // Передаем функцию переключения вместо прямого сеттера
         messages={messages}
         message={message}
         setMessage={setMessage}
