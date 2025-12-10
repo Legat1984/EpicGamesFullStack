@@ -16,21 +16,40 @@ const ChatManager = ({ theme }) => {
   const [roomsLoading, setRoomsLoading] = useState(true);
   const [messagesLoading, setMessagesLoading] = useState(true);
   const [roomsLoaded, setRoomsLoaded] = useState(new Set());
-  const [joinedRooms, setJoinedRooms] = useState(new Set([GENERAL_CHAT_ID])); // Отслеживаем все подключенные комнаты
+  const [joinedRooms, setJoinedRooms] = useState(() => {
+    // Восстанавливаем список подключенных комнат из localStorage при инициализации
+    const savedJoinedRooms = localStorage.getItem('joinedRooms');
+    if (savedJoinedRooms) {
+      try {
+        const parsedRooms = JSON.parse(savedJoinedRooms);
+        // Гарантируем, что общая комната всегда есть в списке
+        if (!parsedRooms.includes(GENERAL_CHAT_ID)) {
+          parsedRooms.push(GENERAL_CHAT_ID);
+        }
+        return new Set(parsedRooms);
+      } catch (error) {
+        console.error('Ошибка при парсинге сохраненных комнат:', error);
+        return new Set([GENERAL_CHAT_ID]);
+      }
+    }
+    return new Set([GENERAL_CHAT_ID]);
+  });
   const [isMobile, setIsMobile] = useState(false);
   const chatEndRef = useRef(null);
 
   // Подключение к общей комнате при монтировании и при подключении сокета
   useEffect(() => {
     if (socket && isConnected && user) {
-      // Подключаемся к общей комнате при инициализации
-      socket.emit('joinRoom', { roomId: GENERAL_CHAT_ID });
-      setJoinedRooms(prev => new Set([...prev, GENERAL_CHAT_ID]));
+      // Подключаемся ко всем ранее подключенным комнатам
+      joinedRooms.forEach(roomId => {
+        socket.emit('joinRoom', { roomId });
+        console.log(`Подключаемся к комнате: ${roomId}`);
+      });
 
       // Загрузка списка комнат
       socket.emit('getRooms');
     }
-  }, [socket, isConnected, user, GENERAL_CHAT_ID]);
+  }, [socket, isConnected, user, joinedRooms]);
 
   // Обработка получения списка комнат
   useEffect(() => {
@@ -124,7 +143,15 @@ const ChatManager = ({ theme }) => {
       // Если пользователь еще не подключен к активной комнате, подключаемся
       if (!joinedRooms.has(activeChat)) {
         socket.emit('joinRoom', { roomId: activeChat });
-        setJoinedRooms(prev => new Set([...prev, activeChat]));
+        setJoinedRooms(prev => {
+          const newSet = new Set(prev);
+          newSet.add(activeChat);
+
+          // Сохраняем обновленный список комнат в localStorage
+          localStorage.setItem('joinedRooms', JSON.stringify(Array.from(newSet)));
+
+          return newSet;
+        });
       }
     }
   }, [socket, user, activeChat, isConnected, joinedRooms]);
@@ -133,7 +160,15 @@ const ChatManager = ({ theme }) => {
   const joinRoom = (roomId) => {
     if (socket && user && isConnected && !joinedRooms.has(roomId)) {
       socket.emit('joinRoom', { roomId });
-      setJoinedRooms(prev => new Set([...prev, roomId]));
+      setJoinedRooms(prev => {
+        const newSet = new Set(prev);
+        newSet.add(roomId);
+
+        // Сохраняем обновленный список комнат в localStorage
+        localStorage.setItem('joinedRooms', JSON.stringify(Array.from(newSet)));
+
+        return newSet;
+      });
     }
   };
 
@@ -146,6 +181,8 @@ const ChatManager = ({ theme }) => {
           socket.emit('leaveRoom', { roomId });
         });
       }
+      // Очищаем список подключенных комнат из localStorage при выходе
+      localStorage.removeItem('joinedRooms');
     };
 
     // Слушаем кастомное событие logout
@@ -165,6 +202,8 @@ const ChatManager = ({ theme }) => {
           socket.emit('leaveRoom', { roomId });
         });
       }
+      // Очищаем список подключенных комнат из localStorage при закрытии
+      localStorage.removeItem('joinedRooms');
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
@@ -173,6 +212,28 @@ const ChatManager = ({ theme }) => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [socket, user, joinedRooms]);
+
+  // Эффект для обработки переподключения сокета
+  useEffect(() => {
+    const handleSocketReconnect = () => {
+      if (socket && user && isConnected) {
+        // После переподключения восстанавливаем подключение ко всем комнатам
+        joinedRooms.forEach(roomId => {
+          socket.emit('joinRoom', { roomId });
+          console.log(`Восстановлено подключение к комнате: ${roomId}`);
+        });
+
+        // Обновляем localStorage с информацией о подключенных комнатах
+        localStorage.setItem('joinedRooms', JSON.stringify(Array.from(joinedRooms)));
+      }
+    };
+
+    window.addEventListener('socketReconnected', handleSocketReconnect);
+
+    return () => {
+      window.removeEventListener('socketReconnected', handleSocketReconnect);
+    };
+  }, [socket, user, isConnected, joinedRooms]);
 
   // Эффект для очистки соединений при размонтировании
   useEffect(() => {

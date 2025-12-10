@@ -21,7 +21,7 @@ export const SocketProvider = ({ children }) => {
   useEffect(() => {
     // Получаем токен из localStorage
     const token = localStorage.getItem('token');
-    
+
     // Создаем соединение с сервером
     const newSocket = io(SERVER_URL, {
       withCredentials: true, // Установим в true, так как сервер настроен с credentials: true
@@ -51,6 +51,10 @@ export const SocketProvider = ({ children }) => {
     newSocket.on('reconnect', (attemptNumber) => {
       console.log('Переподключение к серверу:', attemptNumber);
       setIsConnected(true);
+
+      // После переподключения восстанавливаем подключение к комнатам
+      // Для этого нужно уведомить приложение о необходимости повторного подключения к комнатам
+      window.dispatchEvent(new CustomEvent('socketReconnected'));
     });
 
     newSocket.on('connect_error', (error) => {
