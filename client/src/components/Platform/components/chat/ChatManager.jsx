@@ -12,17 +12,38 @@ const ChatManager = ({ theme }) => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState({});
   const [rooms, setRooms] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [roomsLoading, setRoomsLoading] = useState(true);
+  const [messagesLoading, setMessagesLoading] = useState(true);
   const [roomsLoaded, setRoomsLoaded] = useState(new Set());
   const [isMobile, setIsMobile] = useState(false);
   const chatEndRef = useRef(null);
 
   // Загрузка общей комнаты при монтировании
   useEffect(() => {
+    // Загрузка списка комнат при подключении к сокету
+    if (socket && isConnected && user) {
+      socket.emit('getRooms', user);
+    }
     if (socket && isConnected && user && activeChat) {
       console.log("Сокет подключен! Подключаемся к комнате:", activeChat);
     }
   }, [socket, isConnected, user, activeChat]);
+
+  // Обработка получения списка комнат
+  useEffect(() => {
+    if (socket) {
+      const handleGetRoomsResponse = (roomsData) => {
+        setRooms(Array.isArray(roomsData) ? roomsData : []);
+        setRoomsLoading(false);
+      };
+
+      socket.on('roomsList', handleGetRoomsResponse);
+
+      return () => {
+        socket.off('roomsList', handleGetRoomsResponse);
+      };
+    }
+  }, [socket]);
   
   // Обработка сокет-событий
   useEffect(() => {
@@ -66,7 +87,7 @@ const ChatManager = ({ theme }) => {
 
         // Если загружаем сообщения для активной комнаты, устанавливаем loading в false
         if (roomId === activeChat) {
-          setLoading(false);
+          setMessagesLoading(false);
         }
       };
 
@@ -79,7 +100,7 @@ const ChatManager = ({ theme }) => {
           // Попытаться установить другую комнату или уведомить пользователя
         }
         // В любом случае устанавливаем loading в false, чтобы прекратить показ индикатора загрузки
-        setLoading(false);
+        setMessagesLoading(false);
       };
 
       socket.on('receiveMessage', handleMessageReceive);
@@ -122,7 +143,7 @@ const ChatManager = ({ theme }) => {
     if (activeChat) {
       // Если комната уже была загружена ранее, не устанавливаем loading в true
       if (!roomsLoaded.has(activeChat)) {
-        setLoading(true);
+        setMessagesLoading(true);
       }
     }
   }, [activeChat, roomsLoaded]);
@@ -155,6 +176,9 @@ const ChatManager = ({ theme }) => {
     lastMessageAt: room.lastMessageAt ? new Date(room.lastMessageAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : '',
     participants: room.participants
   })) : [];
+
+  // Объединенное состояние загрузки: и комнат, и сообщений
+  const loading = roomsLoading || messagesLoading;
 
   return (
     <>
