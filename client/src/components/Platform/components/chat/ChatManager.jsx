@@ -1,11 +1,11 @@
-import React, { useState, useRef, useEffect, useContext } from 'react';
+import React, { useState, useRef, useEffect, useContext, forwardRef } from 'react';
 import { UserContext } from '../../../../contexts/UserContext';
 import { useSocket } from '../../contexts/SocketContext';
 import ChatWindow from './ChatWindow';
 import ChatIconButton from './ChatIcon';
 import socketManager from './socketManager';
 
-const ChatManager = ({ theme }) => {
+const ChatManager = forwardRef(({ theme }, ref) => {
   const { user } = useContext(UserContext);
   const { socket, isConnected } = useSocket();
   const GENERAL_CHAT_ID = '692c99e7640a5c477a79ef11'; // ID общей комнаты
@@ -19,6 +19,7 @@ const ChatManager = ({ theme }) => {
   const [roomsLoaded, setRoomsLoaded] = useState(new Set());
   const [joinedRooms, setJoinedRooms] = useState(new Set([GENERAL_CHAT_ID]));
   const [isMobile, setIsMobile] = useState(false);
+  const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
   const chatEndRef = useRef(null);
 
   // Подключение к общей комнате при монтировании и при подключении сокета
@@ -67,6 +68,11 @@ const ChatManager = ({ theme }) => {
             }]
           };
         });
+        
+        // Прокручиваем к последнему сообщению, только если это сообщение из активного чата
+        if (message.room === activeChat) {
+          setShouldScrollToBottom(true);
+        }
       };
 
       // Обработка загрузки сообщений при присоединении к комнате
@@ -94,6 +100,7 @@ const ChatManager = ({ theme }) => {
         // Если загружаем сообщения для активной комнаты, устанавливаем loading в false
         if (roomId === activeChat) {
           setMessagesLoading(false);
+          // Не прокручиваем к началу при загрузке, только сохраняем состояние
         }
       };
 
@@ -231,9 +238,17 @@ const ChatManager = ({ theme }) => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Прокрутка к последнему сообщению только при добавлении новых сообщений в активный чат
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, activeChat]);
+    if (shouldScrollToBottom) {
+      // Прокручиваем к последнему сообщению, но без анимации
+      setTimeout(() => {
+        chatEndRef.current?.scrollIntoView({ behavior: 'instant' });
+        // Сбрасываем состояние прокрутки после прокрутки
+        setShouldScrollToBottom(false);
+      }, 0);
+    }
+  }, [shouldScrollToBottom]);
 
   // Управление состоянием загрузки при смене активной комнаты
   useEffect(() => {
