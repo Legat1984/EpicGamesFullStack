@@ -1,10 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import io from 'socket.io-client';
+import socketManager from '../components/Platform/components/chat/socketManager';
 
 const SocketContext = createContext();
-
-// Подключение к серверу (адрес сервера можно изменить при необходимости)
-const SERVER_URL = process.env.REACT_APP_SERVER_WSURL;
 
 export const useSocket = () => {
   const context = useContext(SocketContext);
@@ -15,74 +12,44 @@ export const useSocket = () => {
 };
 
 export const SocketProvider = ({ children }) => {
-  const [socket, setSocket] = useState(null);
-  const [isConnected, setIsConnected] = useState(false);
+  const [isConnected, setIsConnected] = useState(socketManager.getIsConnected());
 
   useEffect(() => {
     // Получаем токен из localStorage
     const token = localStorage.getItem('token');
 
-    // Создаем соединение с сервером
-    const newSocket = io(SERVER_URL, {
-      withCredentials: true, // Установим в true, так как сервер настроен с credentials: true
-      transports: ['websocket', 'polling'],
-      // Добавляем токен для аутентификации
-      auth: {
-        token: token
-      },
-      // Добавляем таймауты и другие настройки для лучшей стабильности
-      timeout: 20000,
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000
-    });
+    if (token) {
+      socketManager.connect(token);
 
-    newSocket.on('connect', () => {
-      console.log('Подключено к серверу:', newSocket.id);
-      setIsConnected(true);
-    });
+      // Обновляем состояние подключения
+      const updateConnectionStatus = () => {
+        setIsConnected(socketManager.getIsConnected());
+      };
 
-    newSocket.on('disconnect', () => {
-      console.log('Отключено от сервера');
-      setIsConnected(false);
-    });
+      socketManager.addEventListener('connect', updateConnectionStatus);
+      socketManager.addEventListener('disconnect', updateConnectionStatus);
+      socketManager.addEventListener('reconnect', updateConnectionStatus);
 
-    newSocket.on('reconnect', (attemptNumber) => {
-      console.log('Переподключение к серверу:', attemptNumber);
-      setIsConnected(true);
+      // Слушаем кастомное событие переподключения
+      const handleSocketReconnect = () => {
+        // Состояние обновляется через обработчики выше
+      };
+      window.addEventListener('socketReconnected', handleSocketReconnect);
 
-      // После переподключения восстанавливаем подключение к комнатам
-      // Для этого нужно уведомить приложение о необходимости повторного подключения к комнатам
-      window.dispatchEvent(new CustomEvent('socketReconnected'));
-    });
-
-    newSocket.on('connect_error', (error) => {
-      console.error('Ошибка подключения:', error);
-      console.error('Тип ошибки:', error.type);
-      console.error('Сообщение ошибки:', error.message);
-      setIsConnected(false);
-    });
-
-    newSocket.on('reconnect_error', (error) => {
-      console.error('Ошибка переподключения:', error);
-    });
-
-    newSocket.on('reconnect_failed', () => {
-      console.error('Не удалось переподключиться к серверу');
-      setIsConnected(false);
-    });
-
-    setSocket(newSocket);
-
-    // Очищаем соединение при размонтировании
-    return () => {
-      newSocket.close();
-    };
+      return () => {
+        socketManager.removeEventListener('connect', updateConnectionStatus);
+        socketManager.removeEventListener('disconnect', updateConnectionStatus);
+        socketManager.removeEventListener('reconnect', updateConnectionStatus);
+        window.removeEventListener('socketReconnected', handleSocketReconnect);
+      };
+    }
   }, []);
 
   return (
-    <SocketContext.Provider value={{ socket, isConnected }}>
+    <SocketContext.Provider value={{ 
+      socket: socketManager.getSocket(), 
+      isConnected: socketManager.getIsConnected() 
+    }}>
       {children}
     </SocketContext.Provider>
   );

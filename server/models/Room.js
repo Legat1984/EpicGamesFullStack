@@ -9,7 +9,7 @@ const roomSchema = new mongoose.Schema({
   description: String,
   participants: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'users'
+    ref: 'User'
   }],
   createdAt: {
     type: Date,

@@ -3,6 +3,7 @@ import { UserContext } from '../../../../contexts/UserContext';
 import { useSocket } from '../../contexts/SocketContext';
 import ChatWindow from './ChatWindow';
 import ChatIconButton from './ChatIcon';
+import socketManager from './socketManager';
 
 const ChatManager = ({ theme }) => {
   const { user } = useContext(UserContext);
@@ -42,12 +43,12 @@ const ChatManager = ({ theme }) => {
     if (socket && isConnected && user) {
       // Подключаемся ко всем ранее подключенным комнатам
       joinedRooms.forEach(roomId => {
-        socket.emit('joinRoom', { roomId });
+        socketManager.emit('joinRoom', { roomId });
         console.log(`Подключаемся к комнате: ${roomId}`);
       });
 
       // Загрузка списка комнат
-      socket.emit('getRooms');
+      socketManager.emit('getRooms');
     }
   }, [socket, isConnected, user, joinedRooms]);
 
@@ -59,15 +60,15 @@ const ChatManager = ({ theme }) => {
         setRoomsLoading(false);
       };
 
-      socket.on('roomsList', handleGetRoomsResponse);
+      socketManager.addEventListener('roomsList', handleGetRoomsResponse);
 
       return () => {
-        socket.off('roomsList', handleGetRoomsResponse);
+        socketManager.removeEventListener('roomsList', handleGetRoomsResponse);
       };
     }
   }, [socket]);
 
-  // Обработка сокет-событий
+  // Обработка сокет-событий - теперь с предотвращением дубликатов
   useEffect(() => {
     if (socket) {
       // Обработка получения нового сообщения
@@ -125,14 +126,14 @@ const ChatManager = ({ theme }) => {
         setMessagesLoading(false);
       };
 
-      socket.on('receiveMessage', handleMessageReceive);
-      socket.on('loadMessages', handleLoadMessages);
-      socket.on('error', handleError);
+      socketManager.addEventListener('receiveMessage', handleMessageReceive);
+      socketManager.addEventListener('loadMessages', handleLoadMessages);
+      socketManager.addEventListener('error', handleError);
 
       return () => {
-        socket.off('receiveMessage', handleMessageReceive);
-        socket.off('loadMessages', handleLoadMessages);
-        socket.off('error', handleError);
+        socketManager.removeEventListener('receiveMessage', handleMessageReceive);
+        socketManager.removeEventListener('loadMessages', handleLoadMessages);
+        socketManager.removeEventListener('error', handleError);
       };
     }
   }, [socket, activeChat]);
@@ -142,7 +143,7 @@ const ChatManager = ({ theme }) => {
     if (socket && user && activeChat && isConnected) {
       // Если пользователь еще не подключен к активной комнате, подключаемся
       if (!joinedRooms.has(activeChat)) {
-        socket.emit('joinRoom', { roomId: activeChat });
+        socketManager.emit('joinRoom', { roomId: activeChat });
         setJoinedRooms(prev => {
           const newSet = new Set(prev);
           newSet.add(activeChat);
@@ -159,7 +160,7 @@ const ChatManager = ({ theme }) => {
   // Функция для подключения к комнате (используется при необходимости подключиться к комнате без переключения на неё)
   const joinRoom = (roomId) => {
     if (socket && user && isConnected && !joinedRooms.has(roomId)) {
-      socket.emit('joinRoom', { roomId });
+      socketManager.emit('joinRoom', { roomId });
       setJoinedRooms(prev => {
         const newSet = new Set(prev);
         newSet.add(roomId);
@@ -178,7 +179,7 @@ const ChatManager = ({ theme }) => {
       // При выходе из системы покидаем все комнаты, включая общую
       if (socket && user) {
         joinedRooms.forEach(roomId => {
-          socket.emit('leaveRoom', { roomId });
+          socketManager.emit('leaveRoom', { roomId });
         });
       }
       // Очищаем список подключенных комнат из localStorage при выходе
@@ -199,7 +200,7 @@ const ChatManager = ({ theme }) => {
       // При закрытии вкладки/браузера покидаем все комнаты
       if (socket && user) {
         joinedRooms.forEach(roomId => {
-          socket.emit('leaveRoom', { roomId });
+          socketManager.emit('leaveRoom', { roomId });
         });
       }
       // Очищаем список подключенных комнат из localStorage при закрытии
@@ -219,7 +220,7 @@ const ChatManager = ({ theme }) => {
       if (socket && user && isConnected) {
         // После переподключения восстанавливаем подключение ко всем комнатам
         joinedRooms.forEach(roomId => {
-          socket.emit('joinRoom', { roomId });
+          socketManager.emit('joinRoom', { roomId });
           console.log(`Восстановлено подключение к комнате: ${roomId}`);
         });
 
@@ -242,11 +243,11 @@ const ChatManager = ({ theme }) => {
       if (socket && user) {
         joinedRooms.forEach(roomId => {
           if (roomId !== GENERAL_CHAT_ID) {
-            socket.emit('leaveRoom', { roomId });
+            socketManager.emit('leaveRoom', { roomId });
           }
         });
         // Покидаем общую комнату только при полном выходе из системы
-        // socket.emit('leaveRoom', { roomId: GENERAL_CHAT_ID }); // Закомментировано, чтобы не покидать общую комнату при обычном размонтировании
+        // socketManager.emit('leaveRoom', { roomId: GENERAL_CHAT_ID }); // Закомментировано, чтобы не покидать общую комнату при обычном размонтировании
       }
     };
   }, [socket, user, joinedRooms, GENERAL_CHAT_ID]);
@@ -278,7 +279,7 @@ const ChatManager = ({ theme }) => {
     if (message.trim() && activeChat && user && socket) {
       try {
         // Отправляем сообщение через сокет
-        socket.emit('sendMessage', {
+        socketManager.emit('sendMessage', {
           roomId: activeChat,
           text: message.trim()
         });

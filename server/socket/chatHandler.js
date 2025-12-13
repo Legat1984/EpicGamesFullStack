@@ -6,9 +6,30 @@ const jwt = require('jsonwebtoken');
 
 const mongoose = require('mongoose');
 
+// ID общей комнаты
+const GENERAL_CHAT_ID = '692c99e7640a5c477a79ef11';
+
+// Кэш активных игровых комнат (в реальном приложении это может быть в Redis или базе данных)
+const activeGameRooms = new Set();
+
 // Вспомогательная функция для проверки валидности ObjectId
 const isValidObjectId = (id) => {
   return mongoose.Types.ObjectId.isValid(id);
+};
+
+// Функция для добавления игровой комнаты в кэш активных комнат
+const addActiveGameRoom = (roomId) => {
+  activeGameRooms.add(roomId);
+};
+
+// Функция для удаления игровой комнаты из кэша активных комнат
+const removeActiveGameRoom = (roomId) => {
+  activeGameRooms.delete(roomId);
+};
+
+// Функция для проверки, является ли комната активной игровой комнатой
+const isActiveGameRoom = (roomId) => {
+  return activeGameRooms.has(roomId);
 };
 
 module.exports = (io) => {
@@ -34,11 +55,36 @@ module.exports = (io) => {
     console.log('Пользователь подключился:', socket.id);
     console.log('Пользователь ID:', socket.user.userId || socket.user.id);
 
+    // Автоматически присоединяем пользователя к общей комнате при подключении
+    socket.join(GENERAL_CHAT_ID);
+    console.log(`Пользователь ${socket.id} присоединился к общей комнате`);
+
+    // Добавляем общую комнату к списку подключенных комнат
+    if (!socket.joinedRooms) {
+      socket.joinedRooms = new Set();
+    }
+    socket.joinedRooms.add(GENERAL_CHAT_ID);
+
     // Присоединение к комнате
     socket.on('joinRoom', async (data) => {
       try {
         const { roomId } = data;
         const userId = socket.user.userId || socket.user.id;
+
+        // Проверяем, является ли это общей комнатой
+        if (roomId === GENERAL_CHAT_ID) {
+          // Пользователь уже автоматически присоединен к общей комнате
+          console.log('Пользователь пытается присоединиться к общей комнате, которая уже доступна');
+          
+          // Отправляем историю сообщений общей комнаты
+          const messages = await Message.find({ room: roomId })
+            .populate('user', 'login avatar')
+            .sort({ createdAt: 1 })
+            .limit(50); // ограничиваем количество сообщений
+
+          socket.emit('loadMessages', { roomId, messages });
+          return;
+        }
 
         // Проверяем существование комнаты
         console.log('Полученный roomId:', roomId, 'Тип:', typeof roomId);
@@ -59,6 +105,17 @@ module.exports = (io) => {
           socket.emit('error', { message: 'Комната не найдена' });
           return;
         }
+
+        // Проверяем, есть ли пользователь в участниках комнаты
+        if (!room.participants.includes(userId)) {
+          console.log(`Пользователь ${userId} не является участником комнаты ${roomId}`);
+          socket.emit('error', { message: 'У вас нет доступа к этой комнате' });
+          return;
+        }
+
+        // Проверяем, является ли комната активной игровой комнатой (если это игровая комната)
+        // В реальном приложении это может быть проверка через Redis или другую систему
+        // Для простоты сейчас мы просто проверяем, что комната существует в базе данных
 
         if (!socket.joinedRooms) {
           socket.joinedRooms = new Set();
@@ -111,6 +168,19 @@ module.exports = (io) => {
           return;
         }
 
+        // Проверяем, находится ли пользователь в этой комнате
+        if (!socket.joinedRooms || !socket.joinedRooms.has(roomId)) {
+          // Проверяем, является ли это общей комнатой
+          if (roomId !== GENERAL_CHAT_ID) {
+            // Для других комнат проверяем, состоит ли пользователь в участниках
+            const room = await Room.findById(roomId);
+            if (!room || !room.participants.includes(userId)) {
+              socket.emit('error', { message: 'У вас нет доступа к этой комнате' });
+              return;
+            }
+          }
+        }
+
         // Проверяем длину сообщения
         const trimmedText = text.trim();
         if (trimmedText.length > 1000) { // Ограничение длины сообщения
@@ -149,6 +219,13 @@ module.exports = (io) => {
       try {
         const { roomId } = data;
         const userId = socket.user.userId || socket.user.id;
+
+        // Не позволяем покинуть общую комнату
+        if (roomId === GENERAL_CHAT_ID) {
+          console.log('Пользователь не может покинуть общую комнату');
+          socket.emit('error', { message: 'Нельзя покинуть общую комнату' });
+          return;
+        }
 
         // Проверяем, является ли roomId валидным ObjectId
         if (!isValidObjectId(roomId)) {
@@ -198,11 +275,17 @@ module.exports = (io) => {
       console.log('Пользователь отключился:', socket.id, 'User ID:', userId);
 
       // Используем наш собственный список комнат, созданный при joinRoom
+      // Исключаем общую комнату из списка, чтобы пользователь оставался в ней
       const rooms = socket.joinedRooms ? Array.from(socket.joinedRooms) : [];
       console.log('Сокет был в комнатах:', rooms);
 
-      // Проходим по всем комнатам, в которых состоял пользователь
+      // Проходим по всем комнатам, в которых состоял пользователь, кроме общей
       for (const roomId of rooms) {
+        // Пропускаем общую комнату - пользователь остается в ней
+        if (roomId === GENERAL_CHAT_ID) {
+          continue;
+        }
+
         try {
           console.log(`Пользователь покидает комнату: ${roomId}`);
 
@@ -245,3 +328,8 @@ module.exports = (io) => {
     });
   });
 };
+
+// Экспортируем функции для управления активными игровыми комнатами
+module.exports.addActiveGameRoom = addActiveGameRoom;
+module.exports.removeActiveGameRoom = removeActiveGameRoom;
+module.exports.isActiveGameRoom = isActiveGameRoom;
