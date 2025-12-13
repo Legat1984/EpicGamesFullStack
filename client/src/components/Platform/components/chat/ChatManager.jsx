@@ -36,6 +36,7 @@ const ChatManager = ({ theme }) => {
     return new Set([GENERAL_CHAT_ID]);
   });
   const [isMobile, setIsMobile] = useState(false);
+  const [gameRooms, setGameRooms] = useState(new Set()); // Отслеживание игровых комнат
   const chatEndRef = useRef(null);
 
   // Подключение к общей комнате при монтировании и при подключении сокета
@@ -173,6 +174,24 @@ const ChatManager = ({ theme }) => {
     }
   };
 
+  // Функция для добавления комнаты в список игровых комнат
+  const addGameRoom = (roomId) => {
+    setGameRooms(prev => {
+      const newSet = new Set(prev);
+      newSet.add(roomId);
+      return newSet;
+    });
+  };
+
+  // Функция для удаления комнаты из списка игровых комнат
+  const removeGameRoom = (roomId) => {
+    setGameRooms(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(roomId);
+      return newSet;
+    });
+  };
+
   // Эффект для обработки выхода из системы
   useEffect(() => {
     const handleLogout = () => {
@@ -240,17 +259,24 @@ const ChatManager = ({ theme }) => {
   useEffect(() => {
     return () => {
       // При размонтировании покидаем все комнаты, кроме общей
+      // Но только если компонент удаляется по-настоящему, а не при обновлениях
       if (socket && user) {
         joinedRooms.forEach(roomId => {
           if (roomId !== GENERAL_CHAT_ID) {
-            socketManager.emit('leaveRoom', { roomId });
+            // Проверяем, является ли комната игровой комнатой
+            // Если это игровая комната, то не покидаем её здесь, 
+            // а оставляем для управления в GameChatManager
+            // Для простоты сейчас мы покидаем только не-игровые комнаты
+            if (!gameRooms.has(roomId)) {
+              socketManager.emit('leaveRoom', { roomId });
+            }
           }
         });
         // Покидаем общую комнату только при полном выходе из системы
         // socketManager.emit('leaveRoom', { roomId: GENERAL_CHAT_ID }); // Закомментировано, чтобы не покидать общую комнату при обычном размонтировании
       }
     };
-  }, [socket, user, joinedRooms, GENERAL_CHAT_ID]);
+  }, [socket, user, joinedRooms, GENERAL_CHAT_ID, gameRooms]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -262,7 +288,7 @@ const ChatManager = ({ theme }) => {
   }, []);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    chatEndRef.current?.scrollIntoView({ behavior: 'instant' });
   }, [messages, activeChat]);
 
   // Управление состоянием загрузки при смене активной комнаты

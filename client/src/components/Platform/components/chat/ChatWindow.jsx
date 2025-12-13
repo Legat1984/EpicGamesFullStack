@@ -180,7 +180,7 @@ const ChatWindow = ({
   const chatEndRef = useRef(null);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    chatEndRef.current?.scrollIntoView({ behavior: 'instant' });
   }, [messages, activeChat]);
 
   // Предотвратите фоновую прокрутку, когда чат открыт на мобильном устройстве
@@ -238,26 +238,37 @@ const ChatWindow = ({
             </ChatTabs>
 
             <ChatMessages>
-              {messages[activeChat]?.map(msg => {
-                // Определяем, является ли сообщение моим
-                const isOwn = user && msg.user && ((msg.user._id || msg.user.id) === (user._id || user.id));
-                return (
-                  <Message key={msg.id} isOwn={isOwn}>
-                    <MessageAvatar
-                      src={msg.user?.avatar || 'https://placehold.co/32x32'}
-                      alt={msg.user?.username || msg.user?.login || 'Аноним'}
-                    />
-                    <MessageContent isOwn={isOwn}>
-                      <div>{msg.text}</div>
-                      <MessageInfo>
-                        <span>{msg.user?.username || msg.user?.login || 'Аноним'}</span>
-                        <span>{msg.time}</span>
-                      </MessageInfo>
-                    </MessageContent>
-                  </Message>
-                );
-              })}
-              {(!messages[activeChat] || messages[activeChat].length === 0) && (
+              {messages[activeChat] && messages[activeChat].length > 0 ? (
+                <>
+                  {messages[activeChat].length > 50 ? (
+                    <div style={{ textAlign: 'center', padding: '10px', color: theme.textSecondary, fontSize: '14px' }}>
+                      Отображаются последние 50 сообщений. Прокрутите вверх для просмотра истории.
+                    </div>
+                  ) : null}
+                  {(messages[activeChat].length > 50 
+                    ? messages[activeChat].slice(-50) 
+                    : messages[activeChat]
+                  ).map(msg => {
+                    // Определяем, является ли сообщение моим
+                    const isOwn = user && msg.user && ((msg.user._id || msg.user.id) === (user._id || user.id));
+                    return (
+                      <Message key={msg.id} isOwn={isOwn}>
+                        <MessageAvatar
+                          src={msg.user?.avatar || 'https://placehold.co/32x32'}
+                          alt={msg.user?.username || msg.user?.login || 'Аноним'}
+                        />
+                        <MessageContent isOwn={isOwn}>
+                          <div>{msg.text}</div>
+                          <MessageInfo>
+                            <span>{msg.user?.username || msg.user?.login || 'Аноним'}</span>
+                            <span>{msg.time}</span>
+                          </MessageInfo>
+                        </MessageContent>
+                      </Message>
+                    );
+                  })}
+                </>
+              ) : (
                 <div style={{ textAlign: 'center', padding: '20px', color: theme.textSecondary }}>
                   Нет сообщений в этой комнате
                 </div>
