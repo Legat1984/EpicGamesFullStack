@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, forwardRef } from 'react';
 import styled, { css } from 'styled-components';
 import { Send, Users } from 'lucide-react';
 import CloseButton from '../main/CloseButton';
@@ -161,7 +161,7 @@ const ChatSendButton = styled.button`
   justify-content: center;
 `;
 
-const ChatWindow = ({
+const ChatWindow = forwardRef(({  
   isChatOpen,
   toggleChat,
   activeChat,
@@ -176,13 +176,7 @@ const ChatWindow = ({
   loading = false,
   isConnected = false,
   user = null
-}) => {
-  const chatEndRef = useRef(null);
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, activeChat]);
-
+}, ref) => {
   // Предотвратите фоновую прокрутку, когда чат открыт на мобильном устройстве
   useEffect(() => {
     if (isMobile && isChatOpen) {
@@ -262,7 +256,7 @@ const ChatWindow = ({
                   Нет сообщений в этой комнате
                 </div>
               )}
-              <div ref={chatEndRef} />
+              <div ref={ref} />
             </ChatMessages>
           </>
         )}
