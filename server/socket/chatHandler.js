@@ -52,13 +52,11 @@ module.exports = (io) => {
   });
 
   io.on('connection', (socket) => {
-    console.log('Пользователь подключился:', socket.id);
-    console.log('Пользователь ID:', socket.user.userId || socket.user.id);
-
+    console.log(`Пользователь ${socket.user.userId || socket.user.id} подключился:`, socket.id);
+    
     // Автоматически присоединяем пользователя к общей комнате при подключении
     socket.join(GENERAL_CHAT_ID);
-    console.log(`Пользователь ${socket.id} присоединился к общей комнате`);
-
+    
     // Добавляем общую комнату к списку подключенных комнат
     if (!socket.joinedRooms) {
       socket.joinedRooms = new Set();
