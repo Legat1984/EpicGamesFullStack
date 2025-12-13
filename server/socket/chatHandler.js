@@ -17,21 +17,6 @@ const isValidObjectId = (id) => {
   return mongoose.Types.ObjectId.isValid(id);
 };
 
-// Функция для добавления игровой комнаты в кэш активных комнат
-const addActiveGameRoom = (roomId) => {
-  activeGameRooms.add(roomId);
-};
-
-// Функция для удаления игровой комнаты из кэша активных комнат
-const removeActiveGameRoom = (roomId) => {
-  activeGameRooms.delete(roomId);
-};
-
-// Функция для проверки, является ли комната активной игровой комнатой
-const isActiveGameRoom = (roomId) => {
-  return activeGameRooms.has(roomId);
-};
-
 module.exports = (io) => {
   io.use((socket, next) => {
     const token = socket.handshake.auth.token || socket.handshake.query.token;
@@ -51,8 +36,19 @@ module.exports = (io) => {
     }
   });
 
-  io.on('connection', (socket) => {
-    console.log(`Пользователь ${socket.user.userId || socket.user.id} подключился:`, socket.id);
+  io.on('connection', async (socket) => {
+    const userId = socket.user.userId || socket.user.id;
+    console.log(`Пользователь ${userId} подключился к сокету:`, socket.id);
+
+    // Преобразуем GENERAL_CHAT_ID в ObjectId, если он передан как строка
+    const objectId = typeof GENERAL_CHAT_ID === 'string' ? new mongoose.Types.ObjectId(GENERAL_CHAT_ID) : GENERAL_CHAT_ID;
+
+    const room = await Room.findById(objectId);
+    if (!room) {
+      console.log("Комната не найдена");
+      socket.emit('error', { message: 'Комната не найдена' });
+      return;
+    }
     
     // Автоматически присоединяем пользователя к общей комнате при подключении
     socket.join(GENERAL_CHAT_ID);
@@ -62,6 +58,26 @@ module.exports = (io) => {
       socket.joinedRooms = new Set();
     }
     socket.joinedRooms.add(GENERAL_CHAT_ID);
+
+    // Обновляем список участников комнаты в базе данных
+    await Room.findByIdAndUpdate(GENERAL_CHAT_ID, {
+      $addToSet: { participants: userId }
+    });
+
+    // Уведомляем других пользователей о присоединении
+    socket.to(GENERAL_CHAT_ID).emit('userJoined', {
+      userId,
+      GENERAL_CHAT_ID,
+      message: `Пользователь присоединился к комнате ${room.name}`
+    });
+
+    // Отправляем историю сообщений пользователю
+    const messages = await Message.find({ room: GENERAL_CHAT_ID })
+      .populate('user', 'login avatar')
+      .sort({ createdAt: 1 })
+      .limit(50); // ограничиваем количество сообщений
+
+    socket.emit('loadMessages', { GENERAL_CHAT_ID, messages });
 
     // Присоединение к комнате
     socket.on('joinRoom', async (data) => {
@@ -240,11 +256,6 @@ module.exports = (io) => {
           // Удаляем комнату из списка присоединенных комнат
           socket.joinedRooms.delete(roomId);
 
-          // Удаляем пользователя из участников комнаты
-          await Room.findByIdAndUpdate(roomId, {
-            $pull: { participants: userId }
-          });
-
           socket.to(roomId).emit('userLeft', {
             userId,
             roomId,
@@ -321,8 +332,3 @@ module.exports = (io) => {
     });
   });
 };
-
-// Экспортируем функции для управления активными игровыми комнатами
-module.exports.addActiveGameRoom = addActiveGameRoom;
-module.exports.removeActiveGameRoom = removeActiveGameRoom;
-module.exports.isActiveGameRoom = isActiveGameRoom;

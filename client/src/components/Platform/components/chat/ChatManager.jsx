@@ -17,24 +17,7 @@ const ChatManager = ({ theme }) => {
   const [roomsLoading, setRoomsLoading] = useState(true);
   const [messagesLoading, setMessagesLoading] = useState(true);
   const [roomsLoaded, setRoomsLoaded] = useState(new Set());
-  const [joinedRooms, setJoinedRooms] = useState(() => {
-    // Восстанавливаем список подключенных комнат из localStorage при инициализации
-    const savedJoinedRooms = localStorage.getItem('joinedRooms');
-      if (savedJoinedRooms) {
-        try {
-          const parsedRooms = JSON.parse(savedJoinedRooms);
-          // Гарантируем, что общая комната всегда есть в списке
-          if (!parsedRooms.includes(GENERAL_CHAT_ID)) {
-            parsedRooms.push(GENERAL_CHAT_ID);
-          }
-          return new Set(parsedRooms);
-        } catch (error) {
-          console.error('Ошибка при парсинге сохраненных комнат:', error);
-          return new Set([GENERAL_CHAT_ID]);
-        }
-      }
-      return new Set([GENERAL_CHAT_ID]);
-  });
+  const [joinedRooms, setJoinedRooms] = useState(new Set([GENERAL_CHAT_ID]));
   const [isMobile, setIsMobile] = useState(false);
   const chatEndRef = useRef(null);
 
@@ -148,9 +131,6 @@ const ChatManager = ({ theme }) => {
           const newSet = new Set(prev);
           newSet.add(activeChat);
 
-          // Сохраняем обновленный список комнат в localStorage
-          localStorage.setItem('joinedRooms', JSON.stringify(Array.from(newSet)));
-
           return newSet;
         });
       }
@@ -164,9 +144,6 @@ const ChatManager = ({ theme }) => {
       setJoinedRooms(prev => {
         const newSet = new Set(prev);
         newSet.add(roomId);
-
-        // Сохраняем обновленный список комнат в localStorage
-        localStorage.setItem('joinedRooms', JSON.stringify(Array.from(newSet)));
 
         return newSet;
       });
@@ -182,8 +159,6 @@ const ChatManager = ({ theme }) => {
           socketManager.emit('leaveRoom', { roomId });
         });
       }
-      // Очищаем список подключенных комнат из localStorage при выходе
-      localStorage.removeItem('joinedRooms');
     };
 
     // Слушаем кастомное событие logout
@@ -203,8 +178,6 @@ const ChatManager = ({ theme }) => {
           socketManager.emit('leaveRoom', { roomId });
         });
       }
-      // Очищаем список подключенных комнат из localStorage при закрытии
-      localStorage.removeItem('joinedRooms');
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
@@ -223,9 +196,6 @@ const ChatManager = ({ theme }) => {
           socketManager.emit('joinRoom', { roomId });
           console.log(`Восстановлено подключение к комнате: ${roomId}`);
         });
-
-        // Обновляем localStorage с информацией о подключенных комнатах
-        localStorage.setItem('joinedRooms', JSON.stringify(Array.from(joinedRooms)));
       }
     };
 
