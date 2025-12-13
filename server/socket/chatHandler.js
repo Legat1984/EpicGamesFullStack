@@ -290,11 +290,6 @@ module.exports = (io) => {
           // Покидаем комнату
           socket.leave(roomId);
 
-          // Удаляем пользователя из участников комнаты в базе данных
-          await Room.findByIdAndUpdate(roomId, {
-            $pull: { participants: userId }
-          });
-
           // Уведомляем других пользователей в комнате о том, что пользователь покинул комнату
           socket.to(roomId).emit('userLeft', {
             userId,

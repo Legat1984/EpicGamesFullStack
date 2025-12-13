@@ -20,20 +20,20 @@ const ChatManager = ({ theme }) => {
   const [joinedRooms, setJoinedRooms] = useState(() => {
     // Восстанавливаем список подключенных комнат из localStorage при инициализации
     const savedJoinedRooms = localStorage.getItem('joinedRooms');
-    if (savedJoinedRooms) {
-      try {
-        const parsedRooms = JSON.parse(savedJoinedRooms);
-        // Гарантируем, что общая комната всегда есть в списке
-        if (!parsedRooms.includes(GENERAL_CHAT_ID)) {
-          parsedRooms.push(GENERAL_CHAT_ID);
+      if (savedJoinedRooms) {
+        try {
+          const parsedRooms = JSON.parse(savedJoinedRooms);
+          // Гарантируем, что общая комната всегда есть в списке
+          if (!parsedRooms.includes(GENERAL_CHAT_ID)) {
+            parsedRooms.push(GENERAL_CHAT_ID);
+          }
+          return new Set(parsedRooms);
+        } catch (error) {
+          console.error('Ошибка при парсинге сохраненных комнат:', error);
+          return new Set([GENERAL_CHAT_ID]);
         }
-        return new Set(parsedRooms);
-      } catch (error) {
-        console.error('Ошибка при парсинге сохраненных комнат:', error);
-        return new Set([GENERAL_CHAT_ID]);
       }
-    }
-    return new Set([GENERAL_CHAT_ID]);
+      return new Set([GENERAL_CHAT_ID]);
   });
   const [isMobile, setIsMobile] = useState(false);
   const chatEndRef = useRef(null);
@@ -41,14 +41,14 @@ const ChatManager = ({ theme }) => {
   // Подключение к общей комнате при монтировании и при подключении сокета
   useEffect(() => {
     if (socket && isConnected && user) {
+      // Загрузка списка комнат
+      socketManager.emit('getRooms');
+      
       // Подключаемся ко всем ранее подключенным комнатам
       joinedRooms.forEach(roomId => {
         socketManager.emit('joinRoom', { roomId });
         console.log(`Подключаемся к комнате: ${roomId}`);
       });
-
-      // Загрузка списка комнат
-      socketManager.emit('getRooms');
     }
   }, [socket, isConnected, user, joinedRooms]);
 
