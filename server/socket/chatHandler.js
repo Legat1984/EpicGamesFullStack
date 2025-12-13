@@ -77,7 +77,7 @@ module.exports = (io) => {
       .sort({ createdAt: 1 })
       .limit(50); // ограничиваем количество сообщений
 
-    socket.emit('loadMessages', { GENERAL_CHAT_ID, messages });
+    socket.emit('loadMessages', { roomId: GENERAL_CHAT_ID, messages });
 
     // Присоединение к комнате
     socket.on('joinRoom', async (data) => {

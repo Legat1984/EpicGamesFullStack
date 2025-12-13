@@ -238,7 +238,7 @@ const ChatWindow = ({
             </ChatTabs>
 
             <ChatMessages>
-              {messages[activeChat]?.map(msg => {
+              {(messages[activeChat] || [])?.map(msg => {
                 // Определяем, является ли сообщение моим
                 const isOwn = user && msg.user && ((msg.user._id || msg.user.id) === (user._id || user.id));
                 return (

@@ -71,9 +71,14 @@ class SocketManager {
     
     // Check if handler already exists
     const handlers = this.eventHandlers.get(event);
-    if (!handlers.includes(handler)) {
-      handlers.push(handler);
-      this.socket.on(event, handler);
+    const existingHandler = handlers.find(h => h === handler || h._originalHandler === handler);
+
+    if (!existingHandler) {
+      // Create a wrapper to track the original handler
+      const wrapper = (...args) => handler(...args);
+      wrapper._originalHandler = handler;
+      handlers.push(wrapper);
+      this.socket.on(event, wrapper);
     }
   }
 
@@ -81,10 +86,11 @@ class SocketManager {
   removeEventListener(event, handler) {
     if (this.eventHandlers.has(event)) {
       const handlers = this.eventHandlers.get(event);
-      const index = handlers.indexOf(handler);
+      const index = handlers.findIndex(h => h === handler || h._originalHandler === handler);
       if (index > -1) {
+        const handlerToRemove = handlers[index];
         handlers.splice(index, 1);
-        this.socket.off(event, handler);
+        this.socket.off(event, handlerToRemove);
       }
     }
   }
