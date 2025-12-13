@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import socketManager from '../components/Platform/components/chat/socketManager';
+import socketManager from '../components/chat/socketManager';
 
 const SocketContext = createContext();
 

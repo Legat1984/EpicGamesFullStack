@@ -1,1 +1,8 @@
-Nothing should be ignored based on the provided file changes, as they consist only of source code files (.js, .jsx) and no build artifacts, dependencies, or temporary files.
+node_modules/
+.env
+.env.local
+npm-debug.log
+.DS_Store
+logs/
+coverage/
+*.log
