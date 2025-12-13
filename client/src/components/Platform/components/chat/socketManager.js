@@ -69,11 +69,14 @@ class SocketManager {
       this.eventHandlers.set(event, []);
     }
     
-    // Check if handler already exists
+    // Check if handler already exists by comparing function references
     const handlers = this.eventHandlers.get(event);
-    if (!handlers.includes(handler)) {
+    const existingHandler = handlers.find(h => h === handler);
+    if (!existingHandler) {
       handlers.push(handler);
       this.socket.on(event, handler);
+    } else {
+      console.warn(`Handler for event ${event} already exists, skipping duplicate`);
     }
   }
 

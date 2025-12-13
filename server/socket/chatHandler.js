@@ -97,7 +97,7 @@ module.exports = (io) => {
         }
 
         // Преобразуем roomId в ObjectId, если он передан как строка
-        const objectId = typeof roomId === 'string' ? new mongoose.Types.ObjectId(roomId) : roomId;
+        const objectId = typeof roomId === 'string' && mongoose.Types.ObjectId.isValid(roomId) ? new mongoose.Types.ObjectId(roomId) : roomId;
 
         const room = await Room.findById(objectId);
         if (!room) {
@@ -126,9 +126,13 @@ module.exports = (io) => {
         socket.join(roomId);
 
         // Обновляем список участников комнаты в базе данных
-        await Room.findByIdAndUpdate(roomId, {
-          $addToSet: { participants: userId }
-        });
+        // Проверяем, что пользователь действительно является участником комнаты перед добавлением
+        const room = await Room.findById(roomId);
+        if (room && room.participants.includes(userId)) {
+          await Room.findByIdAndUpdate(roomId, {
+            $addToSet: { participants: userId }
+          });
+        }
 
         // Уведомляем других пользователей о присоединении
         socket.to(roomId).emit('userJoined', {
@@ -242,10 +246,14 @@ module.exports = (io) => {
           // Удаляем комнату из списка присоединенных комнат
           socket.joinedRooms.delete(roomId);
 
-          // Удаляем пользователя из участников комнаты
-          await Room.findByIdAndUpdate(roomId, {
-            $pull: { participants: userId }
-          });
+          // Проверяем, состоит ли пользователь в участниках комнаты перед удалением
+          const room = await Room.findById(roomId);
+          if (room && room.participants.includes(userId)) {
+            // Удаляем пользователя из участников комнаты
+            await Room.findByIdAndUpdate(roomId, {
+              $pull: { participants: userId }
+            });
+          }
 
           socket.to(roomId).emit('userLeft', {
             userId,
@@ -292,10 +300,14 @@ module.exports = (io) => {
           // Покидаем комнату
           socket.leave(roomId);
 
-          // Удаляем пользователя из участников комнаты в базе данных
-          await Room.findByIdAndUpdate(roomId, {
-            $pull: { participants: userId }
-          });
+          // Проверяем, состоит ли пользователь в участниках комнаты перед удалением
+          const room = await Room.findById(roomId);
+          if (room && room.participants.includes(userId)) {
+            // Удаляем пользователя из участников комнаты в базе данных
+            await Room.findByIdAndUpdate(roomId, {
+              $pull: { participants: userId }
+            });
+          }
 
           // Уведомляем других пользователей в комнате о том, что пользователь покинул комнату
           socket.to(roomId).emit('userLeft', {

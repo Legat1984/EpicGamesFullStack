@@ -43,8 +43,18 @@ const ChatManager = ({ theme }) => {
     if (socket && isConnected && user) {
       // Подключаемся ко всем ранее подключенным комнатам
       joinedRooms.forEach(roomId => {
-        socketManager.emit('joinRoom', { roomId });
-        console.log(`Подключаемся к комнате: ${roomId}`);
+        // Проверяем, не подключены ли мы уже к комнате
+        if (!roomsLoaded.has(roomId)) {
+          socketManager.emit('joinRoom', { roomId });
+          console.log(`Подключаемся к комнате: ${roomId}`);
+          
+          // Отмечаем, что начали процесс подключения к комнате
+          setRoomsLoaded(prev => {
+            const newSet = new Set(prev);
+            newSet.add(roomId);
+            return newSet;
+          });
+        }
       });
 
       // Загрузка списка комнат
@@ -75,6 +85,12 @@ const ChatManager = ({ theme }) => {
       const handleMessageReceive = (message) => {
         setMessages(prev => {
           const currentMessages = prev[message.room] || [];
+          // Проверяем, не является ли это дубликатом сообщения
+          const isDuplicate = currentMessages.some(msg => msg._id === message._id || msg.id === message._id);
+          if (isDuplicate) {
+            return prev; // Не добавляем дубликат
+          }
+          
           return {
             ...prev,
             [message.room]: [...currentMessages, {
@@ -92,14 +108,26 @@ const ChatManager = ({ theme }) => {
         const messagesArray = Array.isArray(data.messages) ? data.messages : [];
         // Используем roomId из данных, чтобы избежать проблем с синхронизацией
         const roomId = data.roomId;
-        setMessages(prev => ({
-          ...prev,
-          [roomId]: messagesArray.map(msg => ({
-            ...msg,
-            id: msg._id,
-            time: new Date(msg.createdAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
-          }))
-        }));
+        setMessages(prev => {
+          const currentMessages = prev[roomId] || [];
+          
+          // Фильтруем дубликаты из новых сообщений
+          const newMessages = messagesArray.filter(newMsg => {
+            return !currentMessages.some(existingMsg => existingMsg._id === newMsg._id || existingMsg.id === newMsg._id);
+          });
+          
+          return {
+            ...prev,
+            [roomId]: [
+              ...currentMessages,
+              ...newMessages.map(msg => ({
+                ...msg,
+                id: msg._id,
+                time: new Date(msg.createdAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+              }))
+            ]
+          };
+        });
 
         // Отмечаем, что комната загружена и устанавливаем loading в false
         setRoomsLoaded(prev => {
@@ -176,10 +204,12 @@ const ChatManager = ({ theme }) => {
   // Эффект для обработки выхода из системы
   useEffect(() => {
     const handleLogout = () => {
-      // При выходе из системы покидаем все комнаты, включая общую
+      // При выходе из системы покидаем все комнаты, кроме общей
       if (socket && user) {
         joinedRooms.forEach(roomId => {
-          socketManager.emit('leaveRoom', { roomId });
+          if (roomId !== GENERAL_CHAT_ID) {
+            socketManager.emit('leaveRoom', { roomId });
+          }
         });
       }
       // Очищаем список подключенных комнат из localStorage при выходе
@@ -197,10 +227,12 @@ const ChatManager = ({ theme }) => {
   // Эффект для обработки закрытия вкладки/браузера
   useEffect(() => {
     const handleBeforeUnload = () => {
-      // При закрытии вкладки/браузера покидаем все комнаты
+      // При закрытии вкладки/браузера покидаем все комнаты, кроме общей
       if (socket && user) {
         joinedRooms.forEach(roomId => {
-          socketManager.emit('leaveRoom', { roomId });
+          if (roomId !== GENERAL_CHAT_ID) {
+            socketManager.emit('leaveRoom', { roomId });
+          }
         });
       }
       // Очищаем список подключенных комнат из localStorage при закрытии
@@ -218,10 +250,13 @@ const ChatManager = ({ theme }) => {
   useEffect(() => {
     const handleSocketReconnect = () => {
       if (socket && user && isConnected) {
-        // После переподключения восстанавливаем подключение ко всем комнатам
+        // После переподключения восстанавливаем подключение ко всем комнатам, кроме общей
+        // Общая комната автоматически подключается при соединении
         joinedRooms.forEach(roomId => {
-          socketManager.emit('joinRoom', { roomId });
-          console.log(`Восстановлено подключение к комнате: ${roomId}`);
+          if (roomId !== GENERAL_CHAT_ID) {
+            socketManager.emit('joinRoom', { roomId });
+            console.log(`Восстановлено подключение к комнате: ${roomId}`);
+          }
         });
 
         // Обновляем localStorage с информацией о подключенных комнатах
