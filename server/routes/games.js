@@ -26,6 +26,7 @@ router.get('/games-list', async (req, res) => {
             players: game.players,
             time: game.time,
             image: game.image,
+            icon: game.icon,
             description: game.description
         })));
     } catch (error) {

@@ -31,7 +31,7 @@ const FavoriteGame = ({ game, theme, setSelectedGame, onTabChange }) => {
   return (
     <Tooltip content={game.title} theme={theme}>
       <StyledFavoriteGame theme={theme} onClick={handleClick}>
-        <img src={game.image} alt={game.title} />
+        <img src={game.icon} alt={game.title} />
       </StyledFavoriteGame>
     </Tooltip>
   );

@@ -100,46 +100,25 @@ const News = ({ theme }) => {
   const newsData = [
     {
       id: 1,
-      title: "Новый турнир по CS:GO стартует в следующем месяце",
-      description: "Огромное количество игроков со всего мира соберутся для участия в захватывающем турнире с призовым фондом более $1 миллиона.",
-      date: "2023-06-15",
-      image: "https://placehold.co/300x150?text=CS:GO+Tournament"
+      title: "Начало работы над проектом",
+      description: "Сегодня я начал работать над данным проектом. Ждите запуска уже скоро.",
+      date: "2024-10-29",
+      image: "https://cdn.qwenlm.ai/output/426f113e-59ea-4da2-91e2-419700d6774f/t2i/86265e95-b952-4250-9922-aa169fe02410/1765710169.png?key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXNvdXJjZV91c2VyX2lkIjoiNDI2ZjExM2UtNTllYS00ZGEyLTkxZTItNDE5NzAwZDY3NzRmIiwicmVzb3VyY2VfaWQiOiIxNzY1NzEwMTY5IiwicmVzb3VyY2VfY2hhdF9pZCI6IjRjNDkwM2U1LTEzNjAtNGEzMi1hMjQ5LTZjNjNkNTE4M2MxYiJ9.uQHlHl0MGvuvYBkgyNuPumF3mgQLpNcrCdt5y9cE0Ig"
     },
     {
       id: 2,
-      title: "Вышел патч 2.5 для популярной RPG игры",
-      description: "Разработчики представили крупное обновление с новыми квестами, персонажами и улучшенной графикой. Игроки уже оценивают изменения.",
-      date: "2023-06-10",
-      image: "https://placehold.co/300x150?text=RPG+Patch"
+      title: "Разработка с помощью ИИ",
+      description: "Прошел год, из-за нехватки времени, я понял, что работа над проектом движется очень медленно, поэтому решил прибегнуть к помощи искусственного интеллекта.",
+      date: "2025-11-22",
+      image: "https://cdn.qwenlm.ai/output/426f113e-59ea-4da2-91e2-419700d6774f/t2i/95a21b2a-2e97-404c-89a5-ba805b6562df/1765713027.png?key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXNvdXJjZV91c2VyX2lkIjoiNDI2ZjExM2UtNTllYS00ZGEyLTkxZTItNDE5NzAwZDY3NzRmIiwicmVzb3VyY2VfaWQiOiIxNzY1NzEzMDI3IiwicmVzb3VyY2VfY2hhdF9pZCI6ImUyMmM0MWU0LTMxNTUtNGVkNC04ZTViLTYwZTZjODhiNWMxMCJ9.WdPtYoW8ehGiIPLoxnW1XuuXfFS_0NECfzAZxyo8L48"
     },
     {
       id: 3,
-      title: "Открыт набор в новую гильдию World of Warcraft",
-      description: "Гильдия DragonSlayers приглашает опытных игроков и новичков в свой состав. Проводим рейды по выходным и учим основам игры.",
-      date: "2023-06-05",
-      image: "https://placehold.co/300x150?text=WOW+Guild"
+      title: "Увеличение мощностей на сервере разработки",
+      description: "Заметил что проект начал съедать всю ОЗУ, увеличил в 2 раза, так же добавил места на жестком диске.",
+      date: "2025-12-14",
+      image: "https://cdn.qwenlm.ai/output/426f113e-59ea-4da2-91e2-419700d6774f/t2i/f659bb9e-abc2-4238-bda5-ae192c72634f/1765713211.png?key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXNvdXJjZV91c2VyX2lkIjoiNDI2ZjExM2UtNTllYS00ZGEyLTkxZTItNDE5NzAwZDY3NzRmIiwicmVzb3VyY2VfaWQiOiIxNzY1NzEzMjExIiwicmVzb3VyY2VfY2hhdF9pZCI6IjM0Y2RkOTA4LTE3NmUtNDEyNS05NDkyLTgwZjZkYTlmY2YyNSJ9.n13n5R4igfMZVzLG8y0U9GA1twYVURfLssUK1DyxKU8"
     },
-    {
-      id: 4,
-      title: "Анонсирована новая игра от indie студии",
-      description: "Студия PixelDream объявила о своей следующей игре - приключенческой головоломке с уникальной арт-стилистикой и глубоким сюжетом.",
-      date: "2023-06-01",
-      image: "https://placehold.co/300x150?text=Indie+Game"
-    },
-    {
-      id: 5,
-      title: "Трансляция финала чемпионата по Dota 2 доступна",
-      description: "Запись эпического финального матча теперь доступна для просмотра. Команда Team Phoenix одержала победу в напряженной битве.",
-      date: "2023-05-28",
-      image: "https://placehold.co/300x150?text=Dota+2+Final"
-    },
-    {
-      id: 6,
-      title: "Обновлены правила поведения на платформе",
-      description: "Мы обновили правила использования платформы, чтобы обеспечить безопасную и комфортную среду для всех пользователей.",
-      date: "2023-05-25",
-      image: "https://placehold.co/300x150?text=Platform+Rules"
-    }
   ];
 
   return (
@@ -153,7 +132,6 @@ const News = ({ theme }) => {
               <NewsCardTitle>{newsItem.title}</NewsCardTitle>
               <NewsDate>{newsItem.date}</NewsDate>
               <NewsDescription>{newsItem.description}</NewsDescription>
-              <ReadMoreButton>Читать далее</ReadMoreButton>
             </NewsContent>
           </NewsCard>
         ))}

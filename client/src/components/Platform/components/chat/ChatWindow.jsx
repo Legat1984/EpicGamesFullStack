@@ -294,7 +294,7 @@ const ChatWindow = ({
                 return (
                   <Message key={msg.id} isOwn={isOwn}>
                     <MessageAvatar
-                      src={msg.user?.avatar || 'https://placehold.co/32x32'}
+                      src={msg.user?.avatar || 'https://cdn.qwenlm.ai/output/426f113e-59ea-4da2-91e2-419700d6774f/t2i/75522b95-8af7-4b3e-af40-17033947a952/1765711435.png?key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXNvdXJjZV91c2VyX2lkIjoiNDI2ZjExM2UtNTllYS00ZGEyLTkxZTItNDE5NzAwZDY3NzRmIiwicmVzb3VyY2VfaWQiOiIxNzY1NzExNDM1IiwicmVzb3VyY2VfY2hhdF9pZCI6IjMxYjYxZmRmLWI4NzQtNGJhMi05MDIyLTVmZTBmYzAyOTUyMiJ9.iTevrKp3I_ySAlF_6pEkirkDS-yPQA1Q2_zvnVkEECE'}
                       alt={msg.user?.username || msg.user?.login || 'Аноним'}
                     />
                     <MessageContent isOwn={isOwn}>

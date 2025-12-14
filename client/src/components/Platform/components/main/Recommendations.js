@@ -100,45 +100,9 @@ const Recommendations = ({ theme }) => {
   const recommendationsData = [
     {
       id: 1,
-      title: "Cyberpunk 2077: Phantom Liberty",
-      description: "Расширенная версия культовой RPG с новым сюжетом, персонажами и улучшенной системой геймплея.",
-      rating: "4.8 ★",
-      image: "https://placehold.co/300x150?text=Cyberpunk+2077"
-    },
-    {
-      id: 2,
-      title: "The Witcher 4: Wild Hunt",
-      description: "Продолжение легендарной серии RPG. Новый герой, новые миры и захватывающий сюжет от создателей оригинала.",
-      rating: "4.9 ★",
-      image: "https://placehold.co/300x150?text=Witcher+4"
-    },
-    {
-      id: 3,
-      title: "Elden Ring: Shadow of the Erdtree",
-      description: "Огромное дополнение к популярной RPG от FromSoftware. Новые земли, боссы и тайны для исследования.",
-      rating: "4.7 ★",
-      image: "https://placehold.co/300x150?text=Elden+Ring"
-    },
-    {
-      id: 4,
-      title: "Starfield: Shattered Space",
-      description: "Первое крупное дополнение к масштабной космической RPG. Новые планеты, задания и возможности.",
-      rating: "4.5 ★",
-      image: "https://placehold.co/300x150?text=Starfield"
-    },
-    {
-      id: 5,
-      title: "Hogwarts Legacy: Revisit",
-      description: "Новое приключение в мире Гарри Поттера с расширенным миром и новыми волшебными возможностями.",
-      rating: "4.6 ★",
-      image: "https://placehold.co/300x150?text=Hogwarts"
-    },
-    {
-      id: 6,
-      title: "Baldur's Gate 3: Enhanced Edition",
-      description: "Классическая RPG получает новые классы, заклинания и расширенный сюжет после финального обновления.",
-      rating: "5.0 ★",
-      image: "https://placehold.co/300x150?text=Baldurs+Gate"
+      title: "Гарри Поттер: Битва за Хогвартс",
+      description: "Кооперативная настольная игра по мотивам произведений Джоан Роулинг.",
+      image: "https://cdn.qwenlm.ai/output/426f113e-59ea-4da2-91e2-419700d6774f/t2i/4e3708b9-14d0-4ee3-8fa8-efa915ceb6bf/1765710477.png?key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXNvdXJjZV91c2VyX2lkIjoiNDI2ZjExM2UtNTllYS00ZGEyLTkxZTItNDE5NzAwZDY3NzRmIiwicmVzb3VyY2VfaWQiOiIxNzY1NzEwNDc3IiwicmVzb3VyY2VfY2hhdF9pZCI6IjdiYmJmYTUwLTY3NDYtNDdkZC05MjI3LTZmMjBmNzRmYzRhNCJ9.Ze-9lPKKssSPbQX-Ynk88qbEVhkL45KuiHMafJG8wdU"
     }
   ];
 
@@ -151,7 +115,6 @@ const Recommendations = ({ theme }) => {
             <GameImage src={game.image} alt={game.title} />
             <GameContent>
               <GameTitle>{game.title}</GameTitle>
-              <GameRating>{game.rating}</GameRating>
               <GameDescription>{game.description}</GameDescription>
               <ViewDetailsButton>Подробнее</ViewDetailsButton>
             </GameContent>

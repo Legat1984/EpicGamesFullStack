@@ -11,6 +11,7 @@ const GamesSchema = new mongoose.Schema({
     players: { type: String },
     time: { type: String },
     image: { type: String },
+    icon: { type: String },
     description: { type: String }
 }, {collection: 'games'})
 
