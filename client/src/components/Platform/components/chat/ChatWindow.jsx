@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import styled, { css } from 'styled-components';
 import { Send, Users } from 'lucide-react';
 import CloseButton from '../main/CloseButton';
@@ -178,10 +178,33 @@ const ChatWindow = ({
   user = null
 }) => {
   const chatEndRef = useRef(null);
+  const chatMessagesRef = useRef(null);
+
+  const [previousActiveChat, setPreviousActiveChat] = useState(activeChat);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, activeChat]);
+    // Проверяем, изменилась ли активная вкладка чата
+    const chatChanged = previousActiveChat !== activeChat;
+    setPreviousActiveChat(activeChat);
+
+    // Прокручиваем к последнему сообщению без анимации
+    if (chatMessagesRef.current) {
+      if (chatChanged) {
+        // При переключении чатов всегда прокручиваем к последнему сообщению
+        chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
+      } else {
+        // Для новых сообщений в текущем чате прокручиваем только если пользователь внизу
+        const { scrollTop, scrollHeight, clientHeight } = chatMessagesRef.current;
+        // Проверяем, находится ли пользователь вблизи конца чата (в пределах 100px)
+        const isNearBottom = scrollHeight - scrollTop <= clientHeight + 100;
+
+        if (isNearBottom) {
+          // Мгновенно прокручиваем вниз
+          chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
+        }
+      }
+    }
+  }, [messages, activeChat, previousActiveChat]);
 
   // Предотвратите фоновую прокрутку, когда чат открыт на мобильном устройстве
   useEffect(() => {
@@ -237,7 +260,7 @@ const ChatWindow = ({
               ))}
             </ChatTabs>
 
-            <ChatMessages>
+            <ChatMessages ref={chatMessagesRef}>
               {(messages[activeChat] || [])?.map(msg => {
                 // Определяем, является ли сообщение моим
                 const isOwn = user && msg.user && ((msg.user._id || msg.user.id) === (user._id || user.id));

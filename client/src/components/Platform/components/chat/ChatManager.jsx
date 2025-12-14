@@ -232,10 +232,6 @@ const ChatManager = ({ theme }) => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, activeChat]);
-
   // Управление состоянием загрузки при смене активной комнаты
   useEffect(() => {
     if (activeChat) {
