@@ -196,6 +196,7 @@ const ChatManager = ({ theme }) => {
           socketManager.emit('joinRoom', { roomId });
           console.log(`Восстановлено подключение к комнате: ${roomId}`);
         });
+
       }
     };
 
