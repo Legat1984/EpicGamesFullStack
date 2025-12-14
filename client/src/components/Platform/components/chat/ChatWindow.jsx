@@ -181,7 +181,15 @@ const ChatWindow = ({
   const chatMessagesRef = useRef(null);
 
   const [previousActiveChat, setPreviousActiveChat] = useState(activeChat);
+  const [hasScrolledToBottomOnOpen, setHasScrolledToBottomOnOpen] = useState(false);
 
+  // Прокрутка к последнему сообщению
+  const scrollToBottom = (behavior = 'auto') => {
+    if (chatMessagesRef.current) {
+      chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
+    }
+  };
+  
   useEffect(() => {
     // Проверяем, изменилась ли активная вкладка чата
     const chatChanged = previousActiveChat !== activeChat;
@@ -189,22 +197,41 @@ const ChatWindow = ({
 
     // Прокручиваем к последнему сообщению без анимации
     if (chatMessagesRef.current) {
-      if (chatChanged) {
-        // При переключении чатов всегда прокручиваем к последнему сообщению
-        chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
-      } else {
-        // Для новых сообщений в текущем чате прокручиваем только если пользователь внизу
-        const { scrollTop, scrollHeight, clientHeight } = chatMessagesRef.current;
-        // Проверяем, находится ли пользователь вблизи конца чата (в пределах 100px)
-        const isNearBottom = scrollHeight - scrollTop <= clientHeight + 100;
+      // Используем setTimeout для обеспечения того, чтобы прокрутка происходила после рендера
+      setTimeout(() => {
+        if (chatChanged) {
+          // При переключении чатов всегда прокручиваем к последнему сообщению
+          scrollToBottom();
+          // Сбрасываем флаг, чтобы при следующем открытии снова прокрутило
+          setHasScrolledToBottomOnOpen(false);
+        } else {
+          // Для новых сообщений в текущем чате прокручиваем только если пользователь внизу
+          const { scrollTop, scrollHeight, clientHeight } = chatMessagesRef.current;
+          // Проверяем, находится ли пользователь вблизи конца чата (в пределах 100px)
+          const isNearBottom = scrollHeight - scrollTop <= clientHeight + 100;
 
-        if (isNearBottom) {
-          // Мгновенно прокручиваем вниз
-          chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
+          if (isNearBottom) {
+            // Мгновенно прокручиваем вниз
+            scrollToBottom();
+          }
         }
-      }
+      }, 0);
     }
   }, [messages, activeChat, previousActiveChat]);
+
+   // Эффект для прокрутки к последнему сообщению при открытии чата
+   useEffect(() => {
+    if (isChatOpen && chatMessagesRef.current && !hasScrolledToBottomOnOpen) {
+      // Прокручиваем к последнему сообщению при первом открытии чата
+      setTimeout(() => {
+        scrollToBottom();
+        setHasScrolledToBottomOnOpen(true);
+      }, 100); // Небольшая задержка, чтобы гарантировать, что DOM полностью загружен
+    } else if (!isChatOpen) {
+      // Сбрасываем флаг при закрытии чата
+      setHasScrolledToBottomOnOpen(false);
+    }
+  }, [isChatOpen, hasScrolledToBottomOnOpen]);
 
   // Предотвратите фоновую прокрутку, когда чат открыт на мобильном устройстве
   useEffect(() => {
