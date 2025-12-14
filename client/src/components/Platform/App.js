@@ -14,6 +14,8 @@ import ErrorBoundary from '../../components/ErrorBoundary';
 import Header from './components/layout/Header';
 import Main from './components/layout/Main';
 import HeroSection from './components/main/HeroSection';
+import News from './components/main/News';
+import Recommendations from './components/main/Recommendations';
 import GamesManager from './components/games/GamesManager';
 import ChatManager from './components/chat/ChatManager';
 import MobileMenu from './components/layout/MobileMenu';
@@ -27,20 +29,7 @@ const Container = styled.div`
   flex-direction: column;
 `;
 
-// Temporary components for different sections
-const NewsSection = styled.div`
-  margin-bottom: 2rem;
-  padding: 1rem;
-  background-color: ${props => props.theme.surface};
-  border-radius: 8px;
-`;
 
-const RecommendedSection = styled.div`
-  margin-bottom: 2rem;
-  padding: 1rem;
-  background-color: ${props => props.theme.surface};
-  border-radius: 8px;
-`;
 
 const ShopSection = styled.div`
   margin-bottom: 2rem;
@@ -162,14 +151,8 @@ const App = () => {
       case 'home':
         return (
           <>
-            <NewsSection theme={currentTheme}>
-              <h2>Новости</h2>
-              <p>Здесь будут отображаться последние новости платформы.</p>
-            </NewsSection>
-            <RecommendedSection theme={currentTheme}>
-              <h2>Рекомендуем</h2>
-              <p>Здесь будут рекомендуемые игры и контент.</p>
-            </RecommendedSection>
+            <News theme={currentTheme} />
+            <Recommendations theme={currentTheme} />
           </>
         );
       case 'games':
