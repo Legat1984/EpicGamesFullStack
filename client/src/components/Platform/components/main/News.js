@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 
 // Styled components for News
@@ -73,11 +73,20 @@ const NewsDescription = styled.p`
   font-size: 0.9rem;
   color: ${props => props.theme.secondaryText};
   line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
   margin-bottom: 1rem;
+  transition: max-height 0.3s ease;
+  overflow: hidden;
+
+  ${props => props.expanded ? `
+    display: block;
+    max-height: none;
+  ` : `
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    max-height: 4.2em; /* примерно 3 строки */
+  `}
 `;
 
 const ReadMoreButton = styled.button`
@@ -120,6 +129,14 @@ const News = ({ theme }) => {
       image: "https://cdn.qwenlm.ai/output/426f113e-59ea-4da2-91e2-419700d6774f/t2i/f659bb9e-abc2-4238-bda5-ae192c72634f/1765713211.png?key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXNvdXJjZV91c2VyX2lkIjoiNDI2ZjExM2UtNTllYS00ZGEyLTkxZTItNDE5NzAwZDY3NzRmIiwicmVzb3VyY2VfaWQiOiIxNzY1NzEzMjExIiwicmVzb3VyY2VfY2hhdF9pZCI6IjM0Y2RkOTA4LTE3NmUtNDEyNS05NDkyLTgwZjZkYTlmY2YyNSJ9.n13n5R4igfMZVzLG8y0U9GA1twYVURfLssUK1DyxKU8"
     },
   ];
+  const [expandedNews, setExpandedNews] = useState({});
+
+  const toggleNews = (id) => {
+    setExpandedNews(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
 
   return (
     <NewsContainer theme={theme}>
@@ -131,7 +148,18 @@ const News = ({ theme }) => {
             <NewsContent>
               <NewsCardTitle>{newsItem.title}</NewsCardTitle>
               <NewsDate>{newsItem.date}</NewsDate>
-              <NewsDescription>{newsItem.description}</NewsDescription>
+              <NewsDescription expanded={!!expandedNews[newsItem.id]}>
+                {newsItem.description}
+              </NewsDescription>
+              {expandedNews[newsItem.id] ? (
+                <ReadMoreButton onClick={() => toggleNews(newsItem.id)}>
+                  Свернуть
+                </ReadMoreButton>
+              ) : (
+                <ReadMoreButton onClick={() => toggleNews(newsItem.id)}>
+                  Читать далее
+                </ReadMoreButton>
+              )}
             </NewsContent>
           </NewsCard>
         ))}
