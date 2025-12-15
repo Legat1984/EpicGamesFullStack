@@ -12,7 +12,8 @@ const GamesSchema = new mongoose.Schema({
     time: { type: String },
     image: { type: String },
     icon: { type: String },
-    description: { type: String }
+    description: { type: String },
+    recommended: { type: Boolean }
 }, {collection: 'games'})
 
 const Games = mongoose.model('games', GamesSchema)

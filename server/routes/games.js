@@ -98,4 +98,14 @@ router.get('/favorite', authMiddleware, async (req, res) => {
     }
 });
 
+router.get('/recommended', async (req, res) => {
+    try {
+        const recommendedGames = await Games.find({ recommended: true });
+        res.status(200).json(recommendedGames);
+    } catch (error) {
+        console.error(error);
+        res.status(200).json({ errors: `Ошибка сервера: ${error}` });
+    }
+});
+
 module.exports = router
