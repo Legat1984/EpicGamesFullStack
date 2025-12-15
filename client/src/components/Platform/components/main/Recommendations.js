@@ -1,7 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 
-// Styled components for Recommendations
 const RecommendationsContainer = styled.section`
   margin-bottom: 2rem;
   padding: 1rem;
@@ -46,7 +45,7 @@ const RecommendationCard = styled.div`
 const GameImage = styled.img`
   width: 100%;
   height: 150px;
-  object-fit: cover;
+  object-fit: contain;
 `;
 
 const GameContent = styled.div`
@@ -54,7 +53,7 @@ const GameContent = styled.div`
 `;
 
 const GameTitle = styled.h3`
-  font-size: 1.1rem;
+  font-size: 1rem;
   margin-bottom: 0.5rem;
   color: ${props => props.theme.text};
   display: -webkit-box;
@@ -96,30 +95,81 @@ const ViewDetailsButton = styled.button`
 `;
 
 const Recommendations = ({ theme }) => {
-  // Mock data for game recommendations
-  const recommendationsData = [
-    {
-      id: 1,
-      title: "Гарри Поттер: Битва за Хогвартс",
-      description: "Кооперативная настольная игра по мотивам произведений Джоан Роулинг.",
-      image: "https://cdn.qwenlm.ai/output/426f113e-59ea-4da2-91e2-419700d6774f/t2i/4e3708b9-14d0-4ee3-8fa8-efa915ceb6bf/1765710477.png?key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXNvdXJjZV91c2VyX2lkIjoiNDI2ZjExM2UtNTllYS00ZGEyLTkxZTItNDE5NzAwZDY3NzRmIiwicmVzb3VyY2VfaWQiOiIxNzY1NzEwNDc3IiwicmVzb3VyY2VfY2hhdF9pZCI6IjdiYmJmYTUwLTY3NDYtNDdkZC05MjI3LTZmMjBmNzRmYzRhNCJ9.Ze-9lPKKssSPbQX-Ynk88qbEVhkL45KuiHMafJG8wdU"
-    }
-  ];
+  const [recommendedGames, setRecommendedGames] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchRecommendedGames = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/games/recommended`, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`Ошибка сети: ${response.status} ${response.statusText}`);
+        }
+
+        const gamesData = await response.json();
+
+        // Приведение данных к нужному формату
+        const formattedGames = gamesData.map(game => ({
+          id: game.id || game._id,
+          title: game.title,
+          description: game.description,
+          image: game.image
+        }));
+
+        setRecommendedGames(formattedGames);
+      } catch (err) {
+        setError(err.message);
+        console.error('Ошибка получения рекомендованных игр:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecommendedGames();
+  }, []);
+
+  if (loading) {
+    return (
+      <RecommendationsContainer theme={theme}>
+        <RecommendationsTitle>Рекомендации</RecommendationsTitle>
+        <div>Загрузка рекомендованных игр...</div>
+      </RecommendationsContainer>
+    );
+  }
+
+  if (error) {
+    return (
+      <RecommendationsContainer theme={theme}>
+        <RecommendationsTitle>Рекомендации</RecommendationsTitle>
+        <div>Ошибка загрузки рекомендованных игр: {error}</div>
+      </RecommendationsContainer>
+    );
+  }
 
   return (
     <RecommendationsContainer theme={theme}>
       <RecommendationsTitle>Рекомендации</RecommendationsTitle>
       <RecommendationsGrid>
-        {recommendationsData.map((game) => (
-          <RecommendationCard key={game.id}>
-            <GameImage src={game.image} alt={game.title} />
-            <GameContent>
-              <GameTitle>{game.title}</GameTitle>
-              <GameDescription>{game.description}</GameDescription>
-              <ViewDetailsButton>Подробнее</ViewDetailsButton>
-            </GameContent>
-          </RecommendationCard>
-        ))}
+        {recommendedGames.length > 0 ? (
+          recommendedGames.map((game) => (
+            <RecommendationCard key={game.id}>
+              <GameImage src={game.image} alt={game.title} />
+              <GameContent>
+                <GameTitle>{game.title}</GameTitle>
+                <GameDescription>{game.description}</GameDescription>
+                <ViewDetailsButton>Подробнее</ViewDetailsButton>
+              </GameContent>
+            </RecommendationCard>
+          ))
+        ) : (
+          <div>Нет доступных рекомендованных игр</div>
+        )}
       </RecommendationsGrid>
     </RecommendationsContainer>
   );
