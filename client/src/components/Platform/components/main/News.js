@@ -131,6 +131,18 @@ const News = ({ theme }) => {
   ];
   const [expandedNews, setExpandedNews] = useState({});
 
+  // Проверяем, нужно ли отображать кнопку "Читать далее" для конкретной новости
+  const needsReadMoreButton = (description) => {
+    // Проверяем длину описания - если оно достаточно длинное, чтобы быть обрезанным
+    // при применении -webkit-line-clamp: 3, то нужна кнопка
+    const wordCount = description.trim().split(/\s+/).length;
+    const charCount = description.length;
+
+    // Если слов больше 20 или символов больше 125, то, вероятно, текст будет обрезан
+    // и понадобится кнопка "Читать далее"
+    return wordCount > 20 || charCount > 125;
+  };
+
   const toggleNews = (id) => {
     setExpandedNews(prev => ({
       ...prev,
@@ -151,14 +163,16 @@ const News = ({ theme }) => {
               <NewsDescription expanded={!!expandedNews[newsItem.id]}>
                 {newsItem.description}
               </NewsDescription>
-              {expandedNews[newsItem.id] ? (
-                <ReadMoreButton onClick={() => toggleNews(newsItem.id)}>
-                  Свернуть
-                </ReadMoreButton>
-              ) : (
-                <ReadMoreButton onClick={() => toggleNews(newsItem.id)}>
-                  Читать далее
-                </ReadMoreButton>
+              {needsReadMoreButton(newsItem.description) && (
+                expandedNews[newsItem.id] ? (
+                  <ReadMoreButton onClick={() => toggleNews(newsItem.id)}>
+                    Свернуть
+                  </ReadMoreButton>
+                ) : (
+                  <ReadMoreButton onClick={() => toggleNews(newsItem.id)}>
+                    Читать далее
+                  </ReadMoreButton>
+                )
               )}
             </NewsContent>
           </NewsCard>
