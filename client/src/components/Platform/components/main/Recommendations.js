@@ -152,6 +152,44 @@ const Recommendations = ({ theme }) => {
     );
   }
 
+  const handleViewDetails = (game) => {
+    // Set the active tab to 'games' in localStorage
+    localStorage.setItem('activeTab', 'games');
+    
+    // Clear any selected game to ensure we show the grid instead of game details
+    localStorage.removeItem('SelectedGame');
+    
+    // Store the game ID that should be highlighted
+    localStorage.setItem('HighlightGameId', game.id);
+    
+    // Trigger storage event to notify other parts of the app
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'HighlightGameId',
+      newValue: game.id,
+      oldValue: null
+    }));
+    
+    // Update the activeTab state in the parent component by triggering a custom event
+    window.dispatchEvent(new CustomEvent('changeTab', { detail: { tab: 'games' } }));
+    
+    // Add a slight delay to ensure the page has switched to the games tab before attempting to scroll
+    setTimeout(() => {
+      // Try to scroll to the game card if possible, though this may happen automatically
+      // when the games section loads with the selected game
+      const gameElement = document.querySelector(`[data-game-id="${game.id}"]`);
+      if (gameElement) {
+        gameElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Add temporary highlight effect
+        gameElement.classList.add('highlighted-temporarily');
+        setTimeout(() => {
+          if (gameElement) {
+            gameElement.classList.remove('highlighted-temporarily');
+          }
+        }, 2000); // Remove highlight after 2 seconds
+      }
+    }, 500); // Wait 500ms for the tab switch to occur
+  };
+
   return (
     <RecommendationsContainer theme={theme}>
       <RecommendationsTitle>Рекомендации</RecommendationsTitle>
@@ -163,7 +201,7 @@ const Recommendations = ({ theme }) => {
               <GameContent>
                 <GameTitle>{game.title}</GameTitle>
                 <GameDescription>{game.description}</GameDescription>
-                <ViewDetailsButton>Подробнее</ViewDetailsButton>
+                <ViewDetailsButton onClick={() => handleViewDetails(game)}>Подробнее</ViewDetailsButton>
               </GameContent>
             </RecommendationCard>
           ))

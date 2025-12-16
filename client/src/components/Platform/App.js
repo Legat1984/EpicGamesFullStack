@@ -87,7 +87,18 @@ const App = () => {
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    
+    // Listen for custom tab change events
+    const handleTabChange = (event) => {
+      setActiveTab(event.detail.tab);
+    };
+    
+    window.addEventListener('changeTab', handleTabChange);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('changeTab', handleTabChange);
+    };
   }, []);
 
   // Синхронизируем состояние selectedGame с localStorage
@@ -109,6 +120,8 @@ const App = () => {
         const newSelectedGame = e.newValue ? JSON.parse(e.newValue) : null;
         setSelectedGame(newSelectedGame);
       }
+      // We don't need to specifically handle HighlightGameId here since
+      // GamesManager.jsx already handles it directly
     };
 
     // Обрабатываем смену вкладок

@@ -1,8 +1,40 @@
+```
+# Dependencies
 node_modules/
+
+# Editor/IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+
+# Logs
+*.log
+
+# Environment
 .env
 .env.local
-npm-debug.log
-.DS_Store
-logs/
+*.env.*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Build outputs
+dist/
+build/
+*.min.js
+*.min.css
+
+# Coverage
 coverage/
-*.log
+htmlcov/
+.coverage
+
+# OS generated files
+.DS_Store
+Thumbs.db
+```

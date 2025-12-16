@@ -8,7 +8,7 @@ const StyledGamesGrid = styled(({ theme, ...props }) => <div {...props} />)`
   margin-bottom: 3rem;
 `;
 
-const GamesGrid = ({ games, theme, onGameClick }) => {
+const GamesGrid = ({ games, theme, onGameClick, highlightedGameId }) => {
   return (
     <StyledGamesGrid theme={theme}>
       {games.map(game => (
@@ -17,6 +17,7 @@ const GamesGrid = ({ games, theme, onGameClick }) => {
           game={game} 
           theme={theme} 
           onClick={() => onGameClick && onGameClick(game)}
+          isHighlighted={highlightedGameId && game.id === highlightedGameId}
         />
       ))}
     </StyledGamesGrid>

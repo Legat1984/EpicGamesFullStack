@@ -2,7 +2,7 @@ import styled from 'styled-components';
 import GameImage from './GameImage';
 import GameContent from './GameContent';
 
-const StyledGameCard = styled(({ theme, ...props }) => <div {...props} />)`
+const StyledGameCard = styled(({ theme, isHighlighted, ...props }) => <div {...props} />)`
   background-color: ${props => props.theme.card};
   border-radius: 12px;
   overflow: hidden;
@@ -14,6 +14,23 @@ const StyledGameCard = styled(({ theme, ...props }) => <div {...props} />)`
   &:hover {
     transform: translateY(-4px);
     box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+  }
+  
+  ${props => props.isHighlighted ? `
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+  ` : ''}
+  
+  &.highlighted-temporarily {
+    animation: highlight-pulse 2s ease-in-out;
+    transform: translateY(-4px) !important;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.4), 0 0 0 3px rgba(128, 204, 128, 0.5) !important;
+  }
+  
+  @keyframes highlight-pulse {
+    0% { transform: translateY(-4px) scale(1); }
+    50% { transform: translateY(-4px) scale(1.03); }
+    100% { transform: translateY(-4px) scale(1); }
   }
 `;
 
@@ -31,7 +48,8 @@ const PlayButton = styled.div`
   transition: opacity 0.3s ease;
   z-index: 10;
 
-  ${StyledGameCard}:hover & {
+  ${StyledGameCard}:hover &,
+  ${StyledGameCard}[data-is-highlighted="true"] & {
     opacity: 1;
   }
 `;
@@ -44,9 +62,9 @@ const PlayText = styled.span`
   transition: opacity 0.3s ease;
 `;
 
-const GameCard = ({ game, theme, onClick }) => {
+const GameCard = ({ game, theme, onClick, isHighlighted }) => {
   return (
-    <StyledGameCard theme={theme}>
+    <StyledGameCard theme={theme} isHighlighted={isHighlighted} data-is-highlighted={isHighlighted} data-game-id={game.id}>
       <PlayButton onClick={onClick}>
         <PlayText>Играть</PlayText>
       </PlayButton>

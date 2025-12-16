@@ -44,10 +44,19 @@ const GamesManager = ({ theme, selectedGame, setSelectedGame }) => {
        theme={theme}
      />
    } else {
+     // Get the game ID that should be highlighted from localStorage
+     const highlightGameId = localStorage.getItem('HighlightGameId');
+     
+     // Clear the highlight ID after retrieving it to avoid persistent highlighting
+     if (highlightGameId) {
+       localStorage.removeItem('HighlightGameId');
+     }
+     
      return <GamesGrid
        games={games}
        theme={theme}
        onGameClick={handleGameClick}
+       highlightedGameId={highlightGameId}
      />
    }
   }
