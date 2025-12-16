@@ -77,7 +77,7 @@ const NewsDescription = styled.p`
   transition: max-height 0.3s ease;
   overflow: hidden;
 
-  ${props => props.expanded ? `
+  ${props => props.$expanded ? `
     display: block;
     max-height: none;
   ` : `
@@ -160,7 +160,7 @@ const News = ({ theme }) => {
             <NewsContent>
               <NewsCardTitle>{newsItem.title}</NewsCardTitle>
               <NewsDate>{newsItem.date}</NewsDate>
-              <NewsDescription expanded={!!expandedNews[newsItem.id]}>
+              <NewsDescription $expanded={!!expandedNews[newsItem.id]}>
                 {newsItem.description}
               </NewsDescription>
               {needsReadMoreButton(newsItem.description) && (

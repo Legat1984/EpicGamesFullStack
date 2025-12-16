@@ -44,7 +44,7 @@ const RecommendationCard = styled.div`
 
 const GameImage = styled.img`
   width: 100%;
-  height: 150px;
+  height: 185px;
   object-fit: contain;
 `;
 

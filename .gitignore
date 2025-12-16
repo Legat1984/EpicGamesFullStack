@@ -1,40 +1,8 @@
-```
-# Dependencies
 node_modules/
-
-# Editor/IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-*.tmp
-
-# Logs
-*.log
-
-# Environment
 .env
 .env.local
-*.env.*
-
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Build outputs
-dist/
-build/
-*.min.js
-*.min.css
-
-# Coverage
-coverage/
-htmlcov/
-.coverage
-
-# OS generated files
+npm-debug.log
 .DS_Store
-Thumbs.db
-```
+logs/
+coverage/
+*.log
