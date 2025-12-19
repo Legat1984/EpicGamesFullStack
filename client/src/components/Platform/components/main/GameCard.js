@@ -55,11 +55,23 @@ const PlayButton = styled.div`
 `;
 
 const PlayText = styled.span`
-  color: rgba(128, 204, 128, 1);
+  color: #4a90e2;
   font-size: 1.5rem;
   font-weight: bold;
   opacity: 1;
   transition: opacity 0.3s ease;
+  
+  /* Полупрозрачный белый фон */
+  background-color: rgba(255, 255, 255, 0.7);
+  
+  /* Граница */
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  
+  /* Отступы */
+  padding: 0.5rem 1rem;
+  
+  /* Опционально: скругление углов для лучшего вида */
+  border-radius: 4px;
 `;
 
 const GameCard = ({ game, theme, onClick, isHighlighted }) => {
