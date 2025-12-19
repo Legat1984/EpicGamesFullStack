@@ -1,6 +1,12 @@
-import styled from 'styled-components';
+import styled, { css, keyframes } from 'styled-components';
 import GameImage from './GameImage';
 import GameContent from './GameContent';
+
+const highlightPulse = keyframes`
+  0% { transform: translateY(-4px) scale(1); }
+  50% { transform: translateY(-4px) scale(1.03); }
+  100% { transform: translateY(-4px) scale(1); }
+`;
 
 const StyledGameCard = styled(({ theme, isHighlighted, ...props }) => <div {...props} />)`
   background-color: ${props => props.theme.card};
@@ -22,15 +28,9 @@ const StyledGameCard = styled(({ theme, isHighlighted, ...props }) => <div {...p
   ` : ''}
   
   &.highlighted-temporarily {
-    animation: highlight-pulse 2s ease-in-out;
+    animation: ${highlightPulse} 2s ease-in-out;
     transform: translateY(-4px) !important;
     box-shadow: 0 8px 25px rgba(0,0,0,0.4), 0 0 0 3px rgba(128, 204, 128, 0.5) !important;
-  }
-  
-  @keyframes highlight-pulse {
-    0% { transform: translateY(-4px) scale(1); }
-    50% { transform: translateY(-4px) scale(1.03); }
-    100% { transform: translateY(-4px) scale(1); }
   }
 `;
 

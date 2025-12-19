@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
-import styled, { keyframes } from 'styled-components';
+import styled, { keyframes, css } from 'styled-components';
 
 // Create the context
 const GameSettingsContext = createContext();
@@ -106,7 +106,7 @@ export const GameItem = styled.div`
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(0, 116, 224, 0.3);
     border-color: ${props => props.theme.buttonPrimary || '#0074E0'};
-    animation: ${pulse} 1.5s infinite;
+    animation: ${() => css`${pulse}`} 1.5s infinite;
   }
   
   &::before {
@@ -211,7 +211,7 @@ export const PlayerSlot = styled.div`
   border: 1px solid ${props => props.filled ? (props.theme.buttonPrimary || '#0074E0') : (props.theme.border || '#4A4C50')};
   transition: all 0.3s ease;
   
-  ${props => props.filled && `
+  ${props => props.filled && css`
     animation: ${glow} 2s infinite;
   `}
 `;
@@ -234,7 +234,7 @@ export const CreateGameButton = styled.button`
   display: flex;
   justify-content: center;
   align-items: center;
-  animation: ${pulse} 3s infinite;
+  animation: ${() => css`${pulse}`} 3s infinite;
   
   &:hover {
     transform: scale(1.1);
