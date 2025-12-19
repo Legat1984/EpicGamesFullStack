@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тестирование Лобби Гарри Поттер</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #101117;
+            color: #FFFFFF;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #FFFFFF;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            font-family: 'fontHarryPotter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .description {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            color: #86898E;
+        }
+        
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+        
+        .test-button {
+            background: #0074E0;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 200px;
+        }
+        
+        .test-button:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 116, 224, 0.4);
+        }
+        
+        .test-button:active {
+            transform: translateY(0);
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+        
+        .feature-card {
+            background: #21222c;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #4A4C50;
+        }
+        
+        .feature-title {
+            color: #FFFFFF;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+        
+        .feature-description {
+            color: #86898E;
+            line-height: 1.5;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #21222c;
+            border-left: 4px solid #0074E0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Тестирование Лобби Гарри Поттер</h1>
+        <p class="description">Страница для тестирования функциональности лобби игры в стиле Epic Games</p>
+        
+        <div class="button-container">
+            <button class="test-button" onclick="showGameList()">Показать список игр</button>
+            <button class="test-button" onclick="showLobby()">Показать лобби</button>
+            <button class="test-button" onclick="showCreateGame()">Создать игру</button>
+        </div>
+        
+        <div id="content">
+            <div class="status">
+                <h3>Текущий статус:</h3>
+                <p>Выберите действие для тестирования функциональности</p>
+            </div>
+        </div>
+        
+        <div class="features">
+            <div class="feature-card">
+                <h3 class="feature-title">Адаптивный дизайн</h3>
+                <p class="feature-description">Все компоненты полностью адаптивны и корректно отображаются на устройствах с разными размерами экрана.</p>
+            </div>
+            
+            <div class="feature-card">
+                <h3 class="feature-title">Темы оформления</h3>
+                <p class="feature-description">Все элементы используют темы оформления в соответствии с Epic Games стилем.</p>
+            </div>
+            
+            <div class="feature-card">
+                <h3 class="feature-title">Список игр</h3>
+                <p class="feature-description">Вместо таблиц используется стильный список игр с информацией о дате создания, названии, главе и количестве игроков.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showGameList() {
+            document.getElementById('content').innerHTML = `
+                <div class="status">
+                    <h3>Список игр:</h3>
+                    <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: #21222c; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); cursor: pointer; border: 1px solid #4A4C50;">
+                            <div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span style="color: #86898E; font-size: 0.9rem;">05.12.2024 14:30</span>
+                                    <h3 style="color: #FFFFFF; font-size: 1.2rem; font-weight: bold; margin: 0;">Игра в Хогвартсе</h3>
+                                </div>
+                                <p style="color: #86898E; font-size: 0.95rem; margin: 0;">Глава 1: Вступление в школу</p>
+                            </div>
+                            <div style="display: flex; align-items: center; background: #1a1b23; padding: 8px 12px; border-radius: 8px; border: 1px solid #4A4C50;">
+                                <span style="color: #FFFFFF; font-size: 0.9rem; margin-right: 5px;">3/6</span>
+                                <div style="display: flex; align-items: center; gap: 2px;">
+                                    <div style="width: 12px; height: 12px; border-radius: 50%; background: #0074E0; border: 1px solid #0074E0;"></div>
+                                    <div style="width: 12px; height: 12px; border-radius: 50%; background: #0074E0; border: 1px solid #0074E0;"></div>
+                                    <div style="width: 12px; height: 12px; border-radius: 50%; background: #0074E0; border: 1px solid #0074E0;"></div>
+                                    <div style="width: 12px; height: 12px; border-radius: 50%; background: #1a1b23; border: 1px solid #4A4C50;"></div>
+                                    <div style="width: 12px; height: 12px; border-radius: 50%; background: #1a1b23; border: 1px solid #4A4C50;"></div>
+                                    <div style="width: 12px; height: 12px; border-radius: 50%; background: #1a1b23; border: 1px solid #4A4C50;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: #21222c; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); cursor: pointer; border: 1px solid #4A4C50;">
+                            <div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span style="color: #86898E; font-size: 0.9rem;">05.12.2024 12:00</span>
+                                    <h3 style="color: #FFFFFF; font-size: 1.2rem; font-weight: bold; margin: 0;">Поиск Кубка Огня</h3>
+                                </div>
+                                <p style="color: #86898E; font-size: 0.95rem; margin: 0;">Глава 3: Третий испытательный турнир</p>
+                            </div>
+                            <div style="display: flex; align-items: center; background: #1a1b23; padding: 8px 12px; border-radius: 8px; border: 1px solid #4A4C50;">
+                                <span style="color: #FFFFFF; font-size: 0.9rem; margin-right: 5px;">5/6</span>
+                                <div style="display: flex; align-items: center; gap: 2px;">
+                                    <div style="width: 12px; height: 12px; border-radius: 50%; background: #0074E0; border: 1px solid #0074E0;"></div>
+                                    <div style="width: 12px; height: 12px; border-radius: 50%; background: #0074E0; border: 1px solid #0074E0;"></div>
+                                    <div style="width: 12px; height: 12px; border-radius: 50%; background: #0074E0; border: 1px solid #0074E0;"></div>
+                                    <div style="width: 12px; height: 12px; border-radius: 50%; background: #0074E0; border: 1px solid #0074E0;"></div>
+                                    <div style="width: 12px; height: 12px; border-radius: 50%; background: #0074E0; border: 1px solid #0074E0;"></div>
+                                    <div style="width: 12px; height: 12px; border-radius: 50%; background: #1a1b23; border: 1px solid #4A4C50;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function showLobby() {
+            document.getElementById('content').innerHTML = `
+                <div style="background: #21222c; padding: 30px; border-radius: 15px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); border: 1px solid #4A4C50;">
+                    <h2 style="font-size: 1.8rem; margin-bottom: 20px; color: #FFFFFF;">Добро пожаловать в лобби!</h2>
+                    <p style="font-size: 1.1rem; line-height: 1.6; color: #86898E; margin-bottom: 25px;">
+                        Вы находитесь в лобби игры по вселенной Гарри Поттера. 
+                        Здесь вы можете дождаться других игроков перед началом игры. 
+                        Убедитесь, что все игроки готовы, прежде чем начинать игру.
+                    </p>
+                    
+                    <div style="margin-top: 30px;">
+                        <h3 style="font-size: 1.3rem; margin-bottom: 15px; color: #FFFFFF;">Игроки в лобби:</h3>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="padding: 12px 15px; margin-bottom: 8px; background: #1a1b23; border-radius: 8px; border-left: 4px solid #0074E0; color: #FFFFFF;">
+                                Гарри Поттер - <span style="color: #10b981;">Готов</span>
+                            </li>
+                            <li style="padding: 12px 15px; margin-bottom: 8px; background: #1a1b23; border-radius: 8px; border-left: 4px solid #0074E0; color: #FFFFFF;">
+                                Рон Уизли - <span style="color: #10b981;">Готов</span>
+                            </li>
+                            <li style="padding: 12px 15px; margin-bottom: 8px; background: #1a1b23; border-radius: 8px; border-left: 4px solid #0074E0; color: #FFFFFF;">
+                                Гермиона Грейнджер - <span style="color: #f59e0b;">Не готов</span>
+                            </li>
+                            <li style="padding: 12px 15px; margin-bottom: 8px; background: #1a1b23; border-radius: 8px; border-left: 4px solid #0074E0; color: #FFFFFF;">
+                                Невилл Долгопупс - <span style="color: #10b981;">Готов</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <button class="test-button" style="margin-top: 25px;">Начать игру</button>
+                </div>
+            `;
+        }
+        
+        function showCreateGame() {
+            document.getElementById('content').innerHTML = `
+                <div class="status">
+                    <h3>Создание игры:</h3>
+                    <p>Функция создания игры активирована! Появится модальное окно для настройки новой игры.</p>
+                    <div style="position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; border-radius: 50%; background: #0074E0; color: white; border: none; font-size: 24px; cursor: pointer; box-shadow: 0 4px 20px rgba(0, 116, 224, 0.4); display: flex; justify-content: center; align-items: center; z-index: 1000;">
+                        +
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

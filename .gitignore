@@ -1,8 +1,12 @@
+```
+# Dependencies
 node_modules/
+
+# Editors
+.vscode/
+
+# Environment
 .env
 .env.local
-npm-debug.log
-.DS_Store
-logs/
-coverage/
-*.log
+*.env.*
+```

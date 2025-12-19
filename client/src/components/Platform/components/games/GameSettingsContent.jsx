@@ -1,11 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
+import { GameSettingsProvider, GameList, CreateGameButton } from '../../../../contexts/GameSettingsContext';
+import HarryPotterGame from '../../../../components/HarryPotter/HarryPotterGame';
 
 const GameSettingsContainer = styled.div`
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
+  background: ${props => props.theme.background || '#101117'};
+  min-height: 100vh;
 
   @media (max-width: 768px) {
     padding: 1rem;
@@ -14,7 +18,7 @@ const GameSettingsContainer = styled.div`
 
 const GameTitle = styled.h2`
   margin: 0 0 1.5rem 0;
-  color: ${props => props.theme.text};
+  color: ${props => props.theme.text || props.theme.textColorPrimary || '#FFFFFF'};
   font-size: 1.8rem;
 
   @media (max-width: 768px) {
@@ -24,7 +28,7 @@ const GameTitle = styled.h2`
 `;
 
 const GameDescription = styled.p`
-  color: ${props => props.theme.text};
+  color: ${props => props.theme.text || props.theme.textColorSecond || '#86898E'};
   line-height: 1.6;
   margin: 0 0 2rem 0;
 
@@ -42,9 +46,9 @@ const GameSections = styled.div`
 
 const Section = styled.div`
   padding: 1.5rem;
-  border: 1px solid ${props => props.theme.border};
+  border: 1px solid ${props => props.theme.border || '#4A4C50'};
   border-radius: 8px;
-  background: ${props => props.theme.background};
+  background: ${props => props.theme.card || '#21222c'};
 
   @media (max-width: 768px) {
     padding: 1rem;
@@ -53,7 +57,7 @@ const Section = styled.div`
 
 const SectionTitle = styled.h3`
   margin: 0 0 1rem 0;
-  color: ${props => props.theme.text};
+  color: ${props => props.theme.text || props.theme.textColorPrimary || '#FFFFFF'};
   font-size: 1.4rem;
 
   @media (max-width: 768px) {
@@ -62,69 +66,26 @@ const SectionTitle = styled.h3`
   }
 `;
 
-const TableWrapper = styled.div`
-  @media (max-width: 768px) {
-    display: block;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    margin: 0 -1rem;
-    padding: 0 1rem;
-    width: calc(100% + 2rem);
-  }
-`;
-
-const Table = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 0.5rem;
-`;
-
-const TableHeader = styled.th`
-  background: ${props => props.theme.card};
-  padding: 0.75rem;
-  text-align: left;
-  border-bottom: 2px solid ${props => props.theme.border};
-
-  @media (max-width: 768px) {
-    padding: 0.5rem;
-    font-size: 0.9rem;
-  }
-`;
-
-const TableRow = styled.tr`
-  &:nth-child(even) {
-    background: ${props => props.theme.card};
-  }
-  &:hover {
-    background: ${props => props.theme.button};
-  }
-
-  @media (max-width: 768px) {
-    &:hover {
-      background: ${props => props.theme.card};
-    }
-  }
-`;
-
-const TableCell = styled.td`
-  padding: 0.75rem;
-  border-bottom: 1px solid ${props => props.theme.border};
-
-  @media (max-width: 768px) {
-    padding: 0.5rem;
-    font-size: 0.85rem;
-  }
-`;
-
 const Button = styled.button`
-  background: ${props => props.theme.button};
+  background: ${props => props.theme.buttonPrimary || '#0074E0'};
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
   cursor: pointer;
   margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: ${props => props.theme.buttonPrimaryHover || '#0056b3'};
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 116, 224, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 
   @media (max-width: 768px) {
     padding: 0.6rem 1.2rem;
@@ -135,28 +96,25 @@ const Button = styled.button`
 `;
 
 const GameSettingsContent = ({ game, theme }) => {
-  // Хардкодированные данные для таблиц
-  const currentGames = [
-    { id: 1, title: "Тетрис", players: "4/4", status: "Идет игра", time: "15:30" },
-    { id: 2, title: "Шахматы", players: "1/2", status: "Ожидание", time: "16:00" },
-    { id: 3, title: "Монополия", players: "3/4", status: "Идет игра", time: "17:15" }
-  ];
+  // Check if this is the Harry Potter game by title
+  const isHarryPotterGame = game && game.title && game.title.toLowerCase().includes('гарри поттер');
 
-  const invitations = [
-    { id: 1, game: "Шахматы", from: "Иван Петров", time: "10:30", status: "Новое" },
-    { id: 2, game: "Тетрис", from: "Мария Сидорова", time: "11:00", status: "Новое" },
-    { id: 3, game: "Мафия", from: "Алексей Козлов", time: "12:15", status: "Просрочено" }
-  ];
+  // If it's the Harry Potter game, render the specialized Harry Potter lobby
+  if (isHarryPotterGame) {
+    return (
+      <GameSettingsProvider>
+        <HarryPotterGame />
+      </GameSettingsProvider>
+    );
+  }
 
-  const activeGames = [
-    { id: 1, title: "Шахматы", players: "2/2", status: "Активна", time: "16:00", type: "Личная встреча" },
-    { id: 2, title: "Тетрис", players: "4/4", status: "Идет игра", time: "15:30", type: "Онлайн" },
-    { id: 3, title: "Каркассон", players: "3/5", status: "Ожидание", time: "18:00", type: "Онлайн" }
-  ];
-
+  // For other games, render the default game settings content
   return (
-    <GameSettingsContainer>
-      <Button theme={theme} onClick={() => console.log('Создать игру')}>
+    <GameSettingsContainer theme={theme}>
+      <Button 
+        theme={theme} 
+        onClick={() => console.log('Создать игру')}
+      >
         Создать игру
       </Button>
 
@@ -168,82 +126,23 @@ const GameSettingsContent = ({ game, theme }) => {
       <GameSections>
         <Section theme={theme}>
           <SectionTitle theme={theme}>Список текущих игр</SectionTitle>
-          <TableWrapper>
-            <Table>
-              <thead>
-                <tr>
-                  <TableHeader>Название игры</TableHeader>
-                  <TableHeader>Игроки</TableHeader>
-                  <TableHeader>Статус</TableHeader>
-                  <TableHeader>Время</TableHeader>
-                </tr>
-              </thead>
-              <tbody>
-                {currentGames.map((game) => (
-                  <TableRow key={game.id}>
-                    <TableCell>{game.title}</TableCell>
-                    <TableCell>{game.players}</TableCell>
-                    <TableCell>{game.status}</TableCell>
-                    <TableCell>{game.time}</TableCell>
-                  </TableRow>
-                ))}
-              </tbody>
-            </Table>
-          </TableWrapper>
+          <p style={{ color: theme?.text || theme?.textColorSecond || '#86898E' }}>
+            Здесь будут отображаться текущие игры в формате списка, как в Epic Games.
+          </p>
         </Section>
 
         <Section theme={theme}>
           <SectionTitle theme={theme}>Список приглашений</SectionTitle>
-          <TableWrapper>
-            <Table>
-              <thead>
-                <tr>
-                  <TableHeader>Игра</TableHeader>
-                  <TableHeader>От кого</TableHeader>
-                  <TableHeader>Время</TableHeader>
-                  <TableHeader>Статус</TableHeader>
-                </tr>
-              </thead>
-              <tbody>
-                {invitations.map((invitation) => (
-                  <TableRow key={invitation.id}>
-                    <TableCell>{invitation.game}</TableCell>
-                    <TableCell>{invitation.from}</TableCell>
-                    <TableCell>{invitation.time}</TableCell>
-                    <TableCell>{invitation.status}</TableCell>
-                  </TableRow>
-                ))}
-              </tbody>
-            </Table>
-          </TableWrapper>
+          <p style={{ color: theme?.text || theme?.textColorSecond || '#86898E' }}>
+            Здесь будут отображаться приглашения в формате списка, как в Epic Games.
+          </p>
         </Section>
 
         <Section theme={theme}>
           <SectionTitle theme={theme}>Список активных игр</SectionTitle>
-          <TableWrapper>
-            <Table>
-              <thead>
-                <tr>
-                  <TableHeader>Название игры</TableHeader>
-                  <TableHeader>Игроки</TableHeader>
-                  <TableHeader>Статус</TableHeader>
-                  <TableHeader>Время</TableHeader>
-                  <TableHeader>Тип</TableHeader>
-                </tr>
-              </thead>
-              <tbody>
-                {activeGames.map((game) => (
-                  <TableRow key={game.id}>
-                    <TableCell>{game.title}</TableCell>
-                    <TableCell>{game.players}</TableCell>
-                    <TableCell>{game.status}</TableCell>
-                    <TableCell>{game.time}</TableCell>
-                    <TableCell>{game.type}</TableCell>
-                  </TableRow>
-                ))}
-              </tbody>
-            </Table>
-          </TableWrapper>
+          <p style={{ color: theme?.text || theme?.textColorSecond || '#86898E' }}>
+            Здесь будут отображаться активные игры в формате списка, как в Epic Games.
+          </p>
         </Section>
       </GameSections>
     </GameSettingsContainer>
