@@ -78,7 +78,7 @@ const GameCard = ({ game, theme, onClick, isHighlighted }) => {
   return (
     <StyledGameCard theme={theme} isHighlighted={isHighlighted} data-is-highlighted={isHighlighted} data-game-id={game.id}>
       <PlayButton onClick={onClick}>
-        <PlayText>Играть</PlayText>
+        <PlayText>Подробнее</PlayText>
       </PlayButton>
       <GameImage src={game.image} alt={game.title} />        
       <GameContent game={game} theme={theme} />
