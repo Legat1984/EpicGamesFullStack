@@ -39,7 +39,7 @@ const HarryPotterGameInternal = () => {
 
   return (
     <HarryPotterContainer>
-      <HarryPotterHeader>Игра Гарри Поттер</HarryPotterHeader>
+      <HarryPotterHeader>Гарри Поттер: Битва за Хогвартс</HarryPotterHeader>
       <HarryPotterSubHeader>Выберите существующую игру или создайте новую</HarryPotterSubHeader>
       <GameList />
       <CreateGameButton onClick={() => setShowLobby(true)}>+</CreateGameButton>
