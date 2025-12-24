@@ -207,11 +207,11 @@ export const PlayerSlot = styled.div`
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: ${props => props.filled ? (props.theme.buttonPrimary || '#0074E0') : (props.theme.surface || '#1a1b23')};
-  border: 1px solid ${props => props.filled ? (props.theme.buttonPrimary || '#0074E0') : (props.theme.border || '#4A4C50')};
+  background: ${props => props.$filled ? (props.theme.buttonPrimary || '#0074E0') : (props.theme.surface || '#1a1b23')};
+  border: 1px solid ${props => props.$filled ? (props.theme.buttonPrimary || '#0074E0') : (props.theme.border || '#4A4C50')};
   transition: all 0.3s ease;
   
-  ${props => props.filled && css`
+  ${props => props.$filled && css`
     animation: ${glow} 2s infinite;
   `}
 `;
@@ -279,7 +279,7 @@ export const GameList = () => {
       {gamesList.map((game) => {
         const playerSlots = [];
         for (let i = 0; i < game.maxPlayers; i++) {
-          playerSlots.push(<PlayerSlot key={i} filled={i < game.playersJoined} />);
+          playerSlots.push(<PlayerSlot key={i} $filled={i < game.playersJoined} />);
         }
         
         return (
