@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { GameSettingsProvider, GameList, CreateGameButton } from '../../contexts/GameSettingsContext';
+import { GameSettingsProvider, GameList } from '../../contexts/GameSettingsContext';
 import Lobby from './components/lobby/Lobby';
 import { useGameSettings } from '../../contexts/GameSettingsContext';
 
@@ -29,6 +29,37 @@ const HarryPotterSubHeader = styled.h2`
   color: ${props => props.theme.textColorSecond || '#86898E'};
 `;
 
+const CreateGameButtonStyled = styled.button`
+  display: block;
+  margin: 0 auto 30px auto;
+  padding: 12px 30px;
+  background: ${props => props.theme.buttonPrimary || '#0074E0'};
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 116, 224, 0.3);
+  transition: all 0.3s ease;
+  width: auto;
+
+  &:hover {
+    background: ${props => props.theme.buttonPrimaryHover || '#0056b3'};
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 116, 224, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    max-width: 300px;
+    padding: 10px 20px;
+  }
+`;
+
 // Internal component to access context
 const HarryPotterGameInternal = () => {
   const { showLobby, setShowLobby } = useGameSettings();
@@ -41,8 +72,8 @@ const HarryPotterGameInternal = () => {
     <HarryPotterContainer>
       <HarryPotterHeader>Гарри Поттер: Битва за Хогвартс</HarryPotterHeader>
       <HarryPotterSubHeader>Выберите существующую игру или создайте новую</HarryPotterSubHeader>
+      <CreateGameButtonStyled onClick={() => setShowLobby(true)}>Создать игру</CreateGameButtonStyled>
       <GameList />
-      <CreateGameButton onClick={() => setShowLobby(true)}>+</CreateGameButton>
     </HarryPotterContainer>
   );
 };
