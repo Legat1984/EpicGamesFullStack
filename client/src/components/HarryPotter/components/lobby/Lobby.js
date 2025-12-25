@@ -117,7 +117,7 @@ const Lobby = () => {
           </PlayerList>
         </PlayersSection>
         
-        <StartGameButton>Начать игру</StartGameButton>
+        <StartGameButton>Опубликовать игру</StartGameButton>
       </LobbyContent>
     </LobbyContainer>
   );
