@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { useGameSettings } from '../../../../contexts/GameSettingsContext';
 
 const LobbyContainer = styled.div`
   width: 100%;
@@ -67,7 +68,7 @@ const PlayerItem = styled.li`
 
 const StartGameButton = styled.button`
   background: ${props => props.theme.buttonPrimary || '#0074E0'};
-  color: white;
+  color: ${props => props.theme.buttonText || 'white'};
   border: none;
   padding: 12px 25px;
   font-size: 1.1rem;
@@ -106,7 +107,7 @@ const ChapterButtonsContainer = styled.div`
 
 const ChapterButton = styled.button`
   background: ${props => props.available ? (props.selected ? props.theme.buttonPrimary || '#0074E0' : props.theme.surface || '#1a1b23') : '#444444'};
-  color: ${props => props.available ? '#FFFFFF' : '#888888'};
+  color: ${props => props.available ? (props.selected ? props.theme.buttonText || '#FFFFFF' : props.theme.textColorPrimary || '#FFFFFF') : '#888888'};
   border: 1px solid ${props => props.available ? (props.selected ? props.theme.buttonPrimary || '#0074E0' : props.theme.border || '#4A4C50') : '#555555'};
   padding: 10px 15px;
   font-size: 1rem;
@@ -119,6 +120,7 @@ const ChapterButton = styled.button`
   &:hover {
     ${props => props.available && !props.selected ? `
       background: ${props.theme.buttonPrimaryHover || '#0056b3'};
+      color: ${props.theme.buttonText || 'white'};
       transform: translateY(-2px);
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     ` : ''}
@@ -141,7 +143,7 @@ const PlayerCountButtonsContainer = styled.div`
 
 const PlayerCountButton = styled.button`
   background: ${props => props.selected ? props.theme.buttonPrimary || '#0074E0' : props.theme.surface || '#1a1b23'};
-  color: ${props => props.selected ? 'white' : props.theme.textColorPrimary || '#FFFFFF'};
+  color: ${props => props.selected ? (props.theme.buttonText || 'white') : (props.theme.textColorPrimary || '#FFFFFF')};
   border: 1px solid ${props => props.selected ? props.theme.buttonPrimary || '#0074E0' : props.theme.border || '#4A4C50'};
   padding: 10px 20px;
   font-size: 1rem;
@@ -152,6 +154,7 @@ const PlayerCountButton = styled.button`
   &:hover {
     ${props => !props.selected ? `
       background: ${props.theme.surfaceHover || '#2a2b33'};
+      color: ${props.theme.textColorPrimary || '#FFFFFF'};
       transform: translateY(-2px);
     ` : ''}
   }
@@ -174,7 +177,7 @@ const SeatButtonsContainer = styled.div`
 
 const SeatButton = styled.button`
   background: ${props => props.selected ? props.theme.buttonPrimary || '#0074E0' : props.theme.surface || '#1a1b23'};
-  color: ${props => props.selected ? 'white' : props.theme.textColorPrimary || '#FFFFFF'};
+  color: ${props => props.selected ? (props.theme.buttonText || 'white') : (props.theme.textColorPrimary || '#FFFFFF')};
   border: 1px solid ${props => props.selected ? props.theme.buttonPrimary || '#0074E0' : props.theme.border || '#4A4C50'};
   padding: 15px 10px;
   font-size: 1rem;
@@ -187,6 +190,7 @@ const SeatButton = styled.button`
   &:hover {
     ${props => !props.selected ? `
       background: ${props.theme.surfaceHover || '#2a2b33'};
+      color: ${props.theme.textColorPrimary || '#FFFFFF'};
       transform: translateY(-2px);
     ` : ''}
   }
@@ -209,7 +213,7 @@ const CharacterButtonsContainer = styled.div`
 
 const CharacterButton = styled.button`
   background: ${props => props.selected ? props.theme.buttonPrimary || '#0074E0' : props.theme.surface || '#1a1b23'};
-  color: ${props => props.selected ? 'white' : props.theme.textColorPrimary || '#FFFFFF'};
+  color: ${props => props.selected ? (props.theme.buttonText || 'white') : (props.theme.textColorPrimary || '#FFFFFF')};
   border: 1px solid ${props => props.selected ? props.theme.buttonPrimary || '#0074E0' : props.theme.border || '#4A4C50'};
   padding: 10px 15px;
   font-size: 1rem;
@@ -222,6 +226,7 @@ const CharacterButton = styled.button`
   &:hover {
     ${props => !props.selected ? `
       background: ${props.theme.surfaceHover || '#2a2b33'};
+      color: ${props.theme.textColorPrimary || '#FFFFFF'};
       transform: translateY(-2px);
     ` : ''}
   }
@@ -234,7 +239,7 @@ const CharacterButton = styled.button`
 // Стили для кнопки "Назад"
 const BackButton = styled.button`
   background: ${props => props.theme.buttonSecondary || '#6c757d'};
-  color: white;
+  color: ${props => props.theme.buttonText || 'white'};
   border: none;
   padding: 10px 20px;
   font-size: 1rem;
@@ -254,6 +259,22 @@ const BackButton = styled.button`
   }
 `;
 
+const ReadyButton = styled.button`
+  margin-left: 10px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: none;
+  background-color: ${props => props.isReady ? '#10b981' : '#f59e0b'};
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    opacity: 0.9;
+    transform: scale(1.05);
+  }
+`;
+
 // Стили для контейнера с кнопками управления
 const ControlButtonsContainer = styled.div`
   display: flex;
@@ -262,20 +283,6 @@ const ControlButtonsContainer = styled.div`
 `;
 
 const Lobby = () => {
-  // Состояния для различных параметров
-  const [selectedChapter, setSelectedChapter] = useState(1); // По умолчанию выбрана 1 глава
-  const [playerCount, setPlayerCount] = useState(1); // По умолчанию 1 игрок
-  const [selectedSeat, setSelectedSeat] = useState(null); // По умолчанию нет выбранного места
-  const [selectedCharacter, setSelectedCharacter] = useState(null); // По умолчанию нет выбранного персонажа
-  const [gamePublished, setGamePublished] = useState(false); // Состояние публикации игры
-
-  const players = [
-    { id: 1, name: 'Гарри Поттер', status: 'Готов' },
-    { id: 2, name: 'Рон Уизли', status: 'Готов' },
-    { id: 3, name: 'Гермиона Грейнджер', status: 'Не готов' },
-    { id: 4, name: 'Невилл Долгопупс', status: 'Готов' }
-  ];
-
   // Доступные главы (только 1 глава доступна)
   const chapters = [
     { id: 1, title: 'Глава 1', available: true },
@@ -294,6 +301,48 @@ const Lobby = () => {
     { id: 3, name: 'Рон Уизли' },
     { id: 4, name: 'Невил Долгопупс' }
   ];
+
+  // Состояния для различных параметров
+  const [selectedChapter, setSelectedChapter] = useState(1); // По умолчанию выбрана 1 глава
+  const [playerCount, setPlayerCount] = useState(1); // По умолчанию 1 игрок
+  const [selectedSeat, setSelectedSeat] = useState(null); // По умолчанию нет выбранного места
+  const [selectedCharacter, setSelectedCharacter] = useState(null); // По умолчанию нет выбранного персонажа
+  const [gamePublished, setGamePublished] = useState(false); // Состояние публикации игры
+  const [readyStatuses, setReadyStatuses] = useState({}); // Состояния готовности игроков
+
+  const { setShowLobby } = useGameSettings();
+
+  // Функция для получения списка игроков в лобби
+  const getLobbyPlayers = () => {
+    const players = [];
+    for (let i = 0; i < playerCount; i++) {
+      const playerId = i + 1;
+      const playerName = `Игрок ${playerId}`;
+      const characterName = selectedCharacter ? characters.find(c => c.id === selectedCharacter)?.name || '' : 'Не выбран';
+      const seat = selectedSeat === playerId ? `Место ${selectedSeat}` : 'Не выбрано';
+      const isReady = readyStatuses[playerId] || false;
+
+      players.push({
+        id: playerId,
+        name: playerName,
+        character: characterName,
+        seat: seat,
+        isReady: isReady
+      });
+    }
+    return players;
+  };
+
+  const handleReadyToggle = (playerId) => {
+    if (gamePublished) { // Готовность можно менять только после публикации игры
+      setReadyStatuses(prev => ({
+        ...prev,
+        [playerId]: !prev[playerId]
+      }));
+    }
+  };
+
+  const players = getLobbyPlayers();
 
   const handlePublishGame = () => {
     setGamePublished(true);
@@ -380,7 +429,16 @@ const Lobby = () => {
           <PlayerList>
             {players.map(player => (
               <PlayerItem key={player.id}>
-                {player.name} - <span style={{color: player.status === 'Готов' ? '#10b981' : '#f59e0b'}}>{player.status}</span>
+                <strong>{player.name}</strong> | Персонаж: {player.character} | {player.seat} |
+                {gamePublished && (
+                  <ReadyButton
+                    isReady={player.isReady}
+                    onClick={() => handleReadyToggle(player.id)}
+                  >
+                    {player.isReady ? 'Готов' : 'Не готов'}
+                  </ReadyButton>
+                )}
+                {!gamePublished && <span style={{ marginLeft: '10px', color: '#86898E' }}>Статус будет доступен после публикации</span>}
               </PlayerItem>
             ))}
           </PlayerList>
@@ -388,7 +446,7 @@ const Lobby = () => {
 
         <ControlButtonsContainer>
           {!gamePublished && (
-            <StartGameButton onClick={() => window.history.back()}>Назад</StartGameButton>
+            <BackButton onClick={() => setShowLobby(false)}>Назад</BackButton>
           )}
           <StartGameButton onClick={handlePublishGame}>Опубликовать игру</StartGameButton>
         </ControlButtonsContainer>
