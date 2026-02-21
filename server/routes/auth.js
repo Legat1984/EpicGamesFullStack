@@ -52,9 +52,9 @@ router.post(
         return res.status(200).json({ errors: 'Пользователь с таким логином уже зарегистрирован!' })
       }
 
-      const playerRight = await UserRight.findOne({ name: 'Игрок' });
+      let playerRight = await UserRight.findOne({ name: 'Игрок' });
       if (!playerRight) {
-        const playerRight = new UserRight({
+        playerRight = new UserRight({
           name: 'Игрок'
         });
 

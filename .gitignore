@@ -1,8 +1,1 @@
-node_modules/
-.env
-.env.local
-npm-debug.log
-.DS_Store
-logs/
-coverage/
-*.log
+Nothing should be ignored since the changes only include source code files (.js) and no build artifacts, dependencies, or temporary files.

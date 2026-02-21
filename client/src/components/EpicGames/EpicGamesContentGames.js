@@ -127,7 +127,7 @@ const EpicGamesContentGames = () => {
         <div>
             {games.map(game => (
                 <Card key={game.id}>
-                    <Poster style={{ backgroundImage: `url(${game.poster})` }} />
+                    <Poster style={{ backgroundImage: `url(${game.image})` }} />
                     <Star src={StarSVG} $isFavorite={isFavorite(game.id)} onClick={() => toggleFavorite(game.id)} />
                     <IconAndName>
                         <Icon src={game.icon} alt={game.name} />
