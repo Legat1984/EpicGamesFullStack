@@ -7,7 +7,7 @@ const express = require('express')
 // Модели базы данных
 const User = require('../models/User')
 const Games = require('../models/Games')
-const Parts = require('../models/HPBattleTheBattleOfHogwarts/Parts')
+const Parts = require('../models/HPTheBattleOfHogwarts/Parts')
 
 // Middleware
 const authMiddleware = require('../middleware/authMiddleware');
