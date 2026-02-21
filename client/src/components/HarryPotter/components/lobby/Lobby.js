@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useGameSettings } from '../../../../contexts/GameSettingsContext';
 
@@ -284,24 +284,24 @@ const ControlButtonsContainer = styled.div`
 `;
 
 const Lobby = () => {
-    // Доступные главы (только 1 глава доступна)
-    const chapters = [
-        { id: 1, title: 'Глава 1', available: true },
-        { id: 2, title: 'Глава 2', available: false },
-        { id: 3, title: 'Глава 3', available: false },
-        { id: 4, title: 'Глава 4', available: false },
-        { id: 5, title: 'Глава 5', available: false },
-        { id: 6, title: 'Глава 6', available: false },
-        { id: 7, title: 'Глава 7', available: false }
-    ];
+    // Доступные главы (заменены на данные из базы данных)
+    // const chapters = [
+    //     { id: 1, title: 'Глава 1', available: true },
+    //     { id: 2, title: 'Глава 2', available: false },
+    //     { id: 3, title: 'Глава 3', available: false },
+    //     { id: 4, title: 'Глава 4', available: false },
+    //     { id: 5, title: 'Глава 5', available: false },
+    //     { id: 6, title: 'Глава 6', available: false },
+    //     { id: 7, title: 'Глава 7', available: false }
+    // ];
 
-    // Доступные персонажи
-    const characters = [
-        { id: 1, name: 'Гарри Поттер' },
-        { id: 2, name: 'Гермиона Грейнджер' },
-        { id: 3, name: 'Рон Уизли' },
-        { id: 4, name: 'Невил Долгопупс' }
-    ];
+    // Доступные персонажи (заменены на данные из базы данных)
+    // const characters = [
+    //     { id: 1, name: 'Гарри Поттер' },
+    //     { id: 2, name: 'Гермиона Грейнджер' },
+    //     { id: 3, name: 'Рон Уизли' },
+    //     { id: 4, name: 'Невил Долгопупс' }
+    // ];
 
     // Состояния для различных параметров
     const [selectedChapter, setSelectedChapter] = useState(1); // По умолчанию выбрана 1 глава
@@ -310,8 +310,31 @@ const Lobby = () => {
     const [selectedCharacter, setSelectedCharacter] = useState(null); // По умолчанию нет выбранного персонажа
     const [gamePublished, setGamePublished] = useState(false); // Состояние публикации игры
     const [readyStatuses, setReadyStatuses] = useState({}); // Состояния готовности игроков
+    const [chapters, setChapters] = useState([]); // Состояние для хранения глав из базы данных
+    const [characters, setCharacters] = useState([]); // Состояние для хранения персонажей из базы данных
 
     const { setShowLobby } = useGameSettings();
+
+    // Загрузка глав и персонажей с сервера
+    useEffect(() => {
+        const fetchLobbyData = async () => {
+            try {
+                const response = await fetch(`${process.env.REACT_APP_API_URL}/api/hp-game/lobby-data`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    setChapters(result.data.chapters);
+                    setCharacters(result.data.characters);
+                } else {
+                    console.error('Ошибка при загрузке данных для лобби:', result.message);
+                }
+            } catch (error) {
+                console.error('Ошибка при загрузке данных для лобби:', error);
+            }
+        };
+
+        fetchLobbyData();
+    }, []);
 
     // Функция для получения списка игроков в лобби
     const getLobbyPlayers = () => {
@@ -319,7 +342,8 @@ const Lobby = () => {
         for (let i = 0; i < playerCount; i++) {
             const playerId = i + 1;
             const playerName = `Игрок ${playerId}`;
-            const characterName = selectedCharacter ? characters.find(c => c.id === selectedCharacter)?.name || '' : 'Не выбран';
+            const character = characters.find(c => c._id === selectedCharacter);
+            const characterName = selectedCharacter && character ? character.name || '' : 'Не выбран';
             const seat = selectedSeat === playerId ? `Место ${selectedSeat}` : 'Не выбрано';
             const isReady = readyStatuses[playerId] || false;
 
@@ -370,9 +394,9 @@ const Lobby = () => {
                         {chapters.map(chapter => (
                             <ChapterButton
                                 key={chapter.id}
-                                available={chapter.available}
+                                available={chapter.available !== undefined ? chapter.available : true}
                                 selected={selectedChapter === chapter.id}
-                                onClick={() => chapter.available && setSelectedChapter(chapter.id)}
+                                onClick={() => (chapter.available !== undefined ? chapter.available : true) && setSelectedChapter(chapter.id)}
                             >
                                 {chapter.title}
                             </ChapterButton>
@@ -418,9 +442,9 @@ const Lobby = () => {
                     <CharacterButtonsContainer>
                         {characters.map(character => (
                             <CharacterButton
-                                key={character.id}
-                                selected={selectedCharacter === character.id}
-                                onClick={() => setSelectedCharacter(character.id)}
+                                key={character._id}
+                                selected={selectedCharacter === character._id}
+                                onClick={() => setSelectedCharacter(character._id)}
                             >
                                 {character.name}
                             </CharacterButton>
