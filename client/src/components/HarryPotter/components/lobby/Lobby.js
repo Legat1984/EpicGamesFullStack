@@ -317,14 +317,28 @@ const Lobby = () => {
 
   // Загрузка глав и персонажей с сервера
   useEffect(() => {
-    const fetchLobbyData = async () => {
+    const fetchChaptersData = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/hp-game/lobby-data`);
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/hp-game/chapters-data`);
         const result = await response.json();
 
         if (result.success) {
           setChapters(result.data.chapters);
-          setCharacters(result.data.characters);
+          
+          // После получения глав, получаем персонажей для первой главы по умолчанию
+          if (result.data.chapters.length > 0) {
+            const firstChapterId = result.data.chapters[0].id;
+            setSelectedChapter(firstChapterId);
+            
+            const charactersResponse = await fetch(`${process.env.REACT_APP_API_URL}/api/hp-game/characters-data/${firstChapterId}`);
+            const charactersResult = await charactersResponse.json();
+            
+            if (charactersResult.success) {
+              setCharacters(charactersResult.data.characters);
+            } else {
+              console.error('Ошибка при загрузке персонажей для главы:', charactersResult.message);
+            }
+          }
         } else {
           console.error('Ошибка при загрузке данных для лобби:', result.message);
         }
@@ -333,7 +347,7 @@ const Lobby = () => {
       }
     };
 
-    fetchLobbyData();
+    fetchChaptersData();
   }, []);
 
   // Функция для получения списка игроков в лобби
