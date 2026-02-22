@@ -106,19 +106,19 @@ const ChapterButtonsContainer = styled.div`
 `;
 
 const ChapterButton = styled.button`
-  background: ${props => props.available ? (props.selected ? props.theme.buttonPrimary || '#0074E0' : props.theme.surface || '#1a1b23') : '#444444'};
-  color: ${props => props.available ? (props.selected ? props.theme.buttonText || '#FFFFFF' : props.theme.textColorPrimary || '#FFFFFF') : '#888888'};
-  border: 1px solid ${props => props.available ? (props.selected ? props.theme.buttonPrimary || '#0074E0' : props.theme.border || '#4A4C50') : '#555555'};
+  background: ${props => props.$available ? (props.selected ? props.theme.buttonPrimary || '#0074E0' : props.theme.surface || '#1a1b23') : '#444444'};
+  color: ${props => props.$available ? (props.selected ? props.theme.buttonText || '#FFFFFF' : props.theme.textColorPrimary || '#FFFFFF') : '#888888'};
+  border: 1px solid ${props => props.$available ? (props.selected ? props.theme.buttonPrimary || '#0074E0' : props.theme.border || '#4A4C50') : '#555555'};
   padding: 10px 15px;
   font-size: 1rem;
   border-radius: 8px;
-  cursor: ${props => props.available ? 'pointer' : 'not-allowed'};
+  cursor: ${props => props.$available ? 'pointer' : 'not-allowed'};
   transition: all 0.3s ease;
   flex: 1;
   min-width: 100px;
 
   &:hover {
-    ${props => props.available && !props.selected ? `
+    ${props => props.$available && !props.selected ? `
       background: ${props.theme.buttonPrimaryHover || '#0056b3'};
       color: ${props.theme.buttonText || 'white'};
       transform: translateY(-2px);
@@ -394,7 +394,7 @@ const Lobby = () => {
             {chapters.map(chapter => (
               <ChapterButton
                 key={chapter.id}
-                available={Boolean(chapter.available !== undefined ? chapter.available : true)}
+                $available={Boolean(chapter.available !== undefined ? chapter.available : true)}
                 selected={selectedChapter === chapter.id}
                 onClick={() => {
                   const isAvailable = Boolean(chapter.available !== undefined ? chapter.available : true);
