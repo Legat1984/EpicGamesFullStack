@@ -1,1 +1,8 @@
-Nothing needs to be added to .gitignore since only a source code file (Lobby.js) was modified and no build artifacts, dependencies, or temporary files were detected in the changes.
+node_modules/
+.env
+.env.local
+npm-debug.log
+.DS_Store
+logs/
+coverage/
+*.log
