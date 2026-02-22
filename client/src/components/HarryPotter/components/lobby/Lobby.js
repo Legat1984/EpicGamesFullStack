@@ -332,6 +332,7 @@ const Lobby = () => {
             
             const charactersResponse = await fetch(`${process.env.REACT_APP_API_URL}/api/hp-game/characters-data/${firstChapterId}`);
             const charactersResult = await charactersResponse.json();
+            console.log(charactersResult)
             
             if (charactersResult.success) {
               setCharacters(charactersResult.data.characters);

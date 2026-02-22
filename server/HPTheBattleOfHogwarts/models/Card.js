@@ -622,6 +622,8 @@ cardSchema.statics.findHeroes = function(chapter) {
   if (!chapter || chapter < 1 || chapter > 7) {
     throw new Error('Номер главы обязателен и должен быть в диапазоне 1-7');
   }
+  // Поиск значения в массиве: MongoDB автоматически найдёт документы,
+  // где указанное значение содержится в массиве chapter
   return this.find({ type: 'герой', chapter: chapter, isActive: true });
 };
 

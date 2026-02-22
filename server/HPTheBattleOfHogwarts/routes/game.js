@@ -28,38 +28,35 @@ router.get('/chapters-data', async (req, res) => {
 
 // Получение персонажей (героев) для конкретной главы
 router.get('/characters-data/:chapterId', async (req, res) => {
-  try {
-    const chapterId = parseInt(req.params.chapterId);
-    
-    // Проверяем, является ли chapterId допустимым числом
-    if (isNaN(chapterId)) {
-      return res.status(400).json({
+    try {
+      const chapterId = parseInt(req.params.chapterId);
+      
+      if (isNaN(chapterId) || chapterId < 1 || chapterId > 7) {
+        return res.status(400).json({
+          success: false,
+          message: 'Неверный ID главы. Должен быть от 1 до 7'
+        });
+      }
+      
+      // Используем статический метод модели (уже содержит фильтрацию по главе и типу)
+      const characters = await Card.findHeroes(chapterId);
+
+      console.log(characters)
+      
+      res.json({
+        success: true,
+        data: {
+          characters: characters
+        }
+      });
+    } catch (error) {
+      console.error('Ошибка при получении персонажей для главы:', error);
+      res.status(500).json({
         success: false,
-        message: 'Неверный ID главы'
+        message: 'Ошибка при получении персонажей для главы',
+        error: error.message
       });
     }
-    
-    // Получаем персонажей (героев) для конкретной главы
-    const characters = await Card.find({ 
-      type: 'герой', 
-      chapter: chapterId, 
-      isActive: true 
-    }).select('name _id');
-    
-    res.json({
-      success: true,
-      data: {
-        characters: characters
-      }
-    });
-  } catch (error) {
-    console.error('Ошибка при получении персонажей для главы:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Ошибка при получении персонажей для главы',
-      error: error.message
-    });
-  }
-});
+  });
 
 module.exports = router;
